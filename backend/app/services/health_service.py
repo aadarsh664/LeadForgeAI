@@ -1,37 +1,56 @@
+from datetime import datetime, timezone
+
 from app.core.config import get_settings
-from app.core.exceptions import DatabaseUnavailableError
-from app.schemas.health import HealthResponse
-from app.services.database_health_service import DatabaseHealthService
+from app.core.health import APP_VERSION
+from app.schemas.health import ComponentHealthResponse, HealthResponse
+from app.utils.health_checker import HealthChecker
 
 
 class HealthService:
-    """Application health service for bootstrap checks."""
-
-    def __init__(
-        self,
-        database_health_service: DatabaseHealthService | None = None,
-    ) -> None:
-        self.database_health_service = (
-            database_health_service or DatabaseHealthService()
-        )
-
-    async def get_health_status(self) -> HealthResponse:
+    @staticmethod
+    async def get_overall_health() -> HealthResponse:
         settings = get_settings()
-        is_database_connected = await self.database_health_service.is_connected()
 
-        if not is_database_connected:
-            raise DatabaseUnavailableError(
-                {
-                    "success": False,
-                    "status": "unhealthy",
-                    "application": settings.application_name,
-                    "database": "disconnected",
-                }
-            )
+        db_ok, _ = await HealthChecker.check_database()
+        docker_ok, _ = await HealthChecker.check_docker()
+        n8n_ok, _ = await HealthChecker.check_n8n()
+
+        overall_ok = db_ok and docker_ok
 
         return HealthResponse(
-            success=True,
-            status="healthy",
             application=settings.application_name,
-            database="connected",
+            version=APP_VERSION,
+            backend="connected",
+            database="connected" if db_ok else "disconnected",
+            docker="connected" if docker_ok else "disconnected",
+            n8n="connected" if n8n_ok else "disconnected",
+            timestamp=datetime.now(timezone.utc),
+            overall_status="healthy" if overall_ok else "unhealthy",
+        )
+
+    @staticmethod
+    async def get_backend_health() -> ComponentHealthResponse:
+        return ComponentHealthResponse(
+            success=True, status="healthy", message="connected"
+        )
+
+    @staticmethod
+    async def get_database_health() -> ComponentHealthResponse:
+        ok, msg = await HealthChecker.check_database()
+        return ComponentHealthResponse(
+            success=ok, status="healthy" if ok else "unhealthy", message=msg
+        )
+
+    @staticmethod
+    async def get_docker_health() -> ComponentHealthResponse:
+        ok, msg = await HealthChecker.check_docker()
+        return ComponentHealthResponse(
+            success=ok, status="healthy" if ok else "unhealthy", message=msg
+        )
+
+    @staticmethod
+    async def get_n8n_health() -> ComponentHealthResponse:
+        ok, msg = await HealthChecker.check_n8n()
+        return ComponentHealthResponse(
+            success=ok, status="healthy" if ok else "unhealthy", message=msg
         )

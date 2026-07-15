@@ -1,29 +1,31 @@
-from fastapi import APIRouter, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter
 
-from app.core.exceptions import DatabaseUnavailableError
-from app.schemas.health import HealthResponse
+from app.schemas.health import ComponentHealthResponse, HealthResponse
 from app.services.health_service import HealthService
 
+router = APIRouter(prefix="/api/v1/health", tags=["health"])
 
-router = APIRouter(tags=["health"])
+
+@router.get("", response_model=HealthResponse)
+async def get_overall_health() -> HealthResponse:
+    return await HealthService.get_overall_health()
 
 
-@router.get(
-    "/health",
-    response_model=HealthResponse,
-    responses={status.HTTP_503_SERVICE_UNAVAILABLE: {"model": HealthResponse}},
-)
-@router.get(
-    "/api/v1/health",
-    response_model=HealthResponse,
-    responses={status.HTTP_503_SERVICE_UNAVAILABLE: {"model": HealthResponse}},
-)
-async def get_health() -> HealthResponse | JSONResponse:
-    try:
-        return await HealthService().get_health_status()
-    except DatabaseUnavailableError as error:
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content=error.payload,
-        )
+@router.get("/backend", response_model=ComponentHealthResponse)
+async def get_backend_health() -> ComponentHealthResponse:
+    return await HealthService.get_backend_health()
+
+
+@router.get("/database", response_model=ComponentHealthResponse)
+async def get_database_health() -> ComponentHealthResponse:
+    return await HealthService.get_database_health()
+
+
+@router.get("/docker", response_model=ComponentHealthResponse)
+async def get_docker_health() -> ComponentHealthResponse:
+    return await HealthService.get_docker_health()
+
+
+@router.get("/n8n", response_model=ComponentHealthResponse)
+async def get_n8n_health() -> ComponentHealthResponse:
+    return await HealthService.get_n8n_health()
