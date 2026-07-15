@@ -1,102 +1,145 @@
-import { useState } from "react";
-import type { HealthResponse } from "./types/health";
-
-type RequestState = "idle" | "checking" | "completed" | "error";
-
-const DEFAULT_MESSAGE = "Press the button to verify backend connectivity.";
-
-async function fetchHealthStatus(): Promise<HealthResponse> {
-  const response = await fetch("http://localhost:8000/api/v1/health");
-
-  if (!response.ok) {
-    throw new Error(`Health check request failed: ${response.statusText}`);
-  }
-
-  return (await response.json()) as HealthResponse;
-}
+import { useState, useEffect } from "react";
+import type { StartupStatusResponse } from "./types/system";
 
 function App() {
-  const [requestState, setRequestState] = useState<RequestState>("idle");
-  const [healthData, setHealthData] = useState<HealthResponse | null>(null);
-  const [statusMessage, setStatusMessage] = useState(DEFAULT_MESSAGE);
+  const [status, setStatus] = useState<StartupStatusResponse>({
+    current_step: "idle",
+    completed_steps: [],
+    progress_percentage: 0,
+    overall_status: "idle",
+    is_ready: false,
+    message: "Ready to start.",
+  });
+  
+  const [isChecking, setIsChecking] = useState(false);
 
-  const handleHealthCheck = async () => {
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    
+    if (isChecking) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch("http://localhost:8000/api/v1/system/startup/status");
+          if (res.ok) {
+            const data: StartupStatusResponse = await res.json();
+            setStatus(data);
+            if (data.overall_status === "success" || data.overall_status === "failed") {
+              setIsChecking(false);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to poll status", error);
+        }
+      }, 500);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isChecking]);
+
+  const handleStart = async () => {
     try {
-      setRequestState("checking");
-      setStatusMessage("Checking system health...");
-
-      const health = await fetchHealthStatus();
-
-      setRequestState("completed");
-      setHealthData(health);
-      setStatusMessage(
-        health.overall_status === "healthy"
-          ? `${health.application} system is fully healthy.`
-          : `${health.application} system has issues.`
-      );
+      setIsChecking(true);
+      const res = await fetch("http://localhost:8000/api/v1/system/startup", {
+        method: "POST"
+      });
+      if (!res.ok) {
+        setIsChecking(false);
+        setStatus(prev => ({...prev, overall_status: "failed", message: "Failed to initiate startup sequence."}));
+      }
     } catch (error) {
-      setRequestState("error");
-      setHealthData(null);
-      setStatusMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to connect to the backend."
-      );
+      setIsChecking(false);
+      setStatus(prev => ({...prev, overall_status: "failed", message: "Network error. Backend unreachable."}));
     }
   };
+
+  const allSteps = ["Backend", "Database", "Docker", "n8n", "Workspace", "Ready"];
+
+  if (status.is_ready) {
+    return (
+      <main className="app-shell">
+        <section className="status-card" style={{ textAlign: "center" }}>
+          <div className="icon-success">✓</div>
+          <h1>LeadForgeAI is Ready</h1>
+          <p className="subtitle">{status.message}</p>
+          <button className="primary-button" type="button">
+            Continue
+          </button>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="app-shell">
       <section className="status-card">
         <p className="eyebrow">Lead Intelligence Platform</p>
-        <h1>{healthData ? healthData.application : "LeadForgeAI"}</h1>
-        <p className="subtitle">Desktop Bootstrap</p>
+        <h1>LeadForgeAI</h1>
+        <p className="subtitle">System Boot</p>
 
-        <dl className="status-list">
-          <div className="status-row">
-            <dt>Application Version</dt>
-            <dd>{healthData?.version || "Unknown"}</dd>
+        {status.overall_status === "idle" && !isChecking ? (
+          <div style={{ textAlign: "center", margin: "40px 0" }}>
+            <button
+              className="power-button"
+              onClick={handleStart}
+              type="button"
+            >
+              POWER ON
+            </button>
           </div>
-          <div className="status-row">
-            <dt>Backend Status</dt>
-            <dd>{healthData?.backend || "Not checked"}</dd>
-          </div>
-          <div className="status-row">
-            <dt>Database Status</dt>
-            <dd>{healthData?.database || "Not checked"}</dd>
-          </div>
-          <div className="status-row">
-            <dt>Docker Status</dt>
-            <dd>{healthData?.docker || "Not checked"}</dd>
-          </div>
-          <div className="status-row">
-            <dt>n8n Status</dt>
-            <dd>{healthData?.n8n || "Not checked"}</dd>
-          </div>
-          <div className="status-row">
-            <dt>Overall Status</dt>
-            <dd>{healthData?.overall_status || "Unknown"}</dd>
-          </div>
-        </dl>
+        ) : (
+          <div className="startup-progress">
+            <div className="progress-bar-container">
+              <div 
+                className="progress-bar-fill" 
+                style={{ width: `${status.progress_percentage}%` }}
+              ></div>
+            </div>
+            
+            <p className="current-message">{status.message}</p>
+            
+            <ul className="step-list">
+              {allSteps.map(step => {
+                const isCompleted = status.completed_steps.includes(step) || (status.is_ready && step === "Ready");
+                const isCurrent = status.current_step === step && status.overall_status === "running";
+                const isFailed = status.current_step === step && status.overall_status === "failed";
+                
+                let icon = "○";
+                let className = "step-pending";
+                
+                if (isCompleted) {
+                  icon = "✓";
+                  className = "step-completed";
+                } else if (isFailed) {
+                  icon = "✗";
+                  className = "step-failed";
+                } else if (isCurrent) {
+                  icon = "↻";
+                  className = "step-running";
+                }
+                
+                return (
+                  <li key={step} className={`step-item ${className}`}>
+                    <span className="step-icon">{icon}</span> {step}
+                  </li>
+                );
+              })}
+            </ul>
 
-        <button
-          className="primary-button"
-          onClick={handleHealthCheck}
-          type="button"
-          disabled={requestState === "checking"}
-        >
-          {requestState === "checking" ? "Checking..." : "Refresh Status"}
-        </button>
-
-        <p
-          className={`feedback ${
-            requestState === "error"
-              ? "feedback-error"
-              : "feedback-neutral"
-          }`}
-        >
-          {statusMessage}
-        </p>
+            {status.overall_status === "failed" && (
+              <div style={{ marginTop: "24px", textAlign: "center" }}>
+                <button
+                  className="primary-button"
+                  onClick={handleStart}
+                  type="button"
+                >
+                  Retry Startup
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </main>
   );

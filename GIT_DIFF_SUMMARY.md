@@ -1,20 +1,22 @@
-# Git Diff Summary (TASK-005)
+# Git Diff Summary (TASK-006)
 
 ## Untracked Files Added
 ```text
-frontend/src-tauri/
+backend/app/api/routes/system.py
+backend/app/schemas/system.py
+backend/app/services/startup_service.py
+frontend/src/types/system.ts
 ```
-*(Contains Tauri configuration files `tauri.conf.json`, `Cargo.toml`, `build.rs`, and the Rust `src` folder).*
 
 ## Modified Files
 ```text
-frontend/package-lock.json
-frontend/package.json
+docker-compose.yml
+backend/app/api/router.py
 frontend/src/App.tsx
-frontend/src/types/health.ts
+frontend/src/styles.css
 ```
 
 ## Summary of Changes
-- **`frontend/package.json`**: Added Tauri CLI and API dependencies. Added `"tauri": "tauri"` script.
-- **`frontend/src/App.tsx`**: Updated the UI to display the new detailed health metrics from the backend (Version, Backend, Database, Docker, n8n). Integrated explicit error handling.
-- **`frontend/src/types/health.ts`**: Expanded the `HealthResponse` TypeScript interface to match the backend updates.
+- **Backend**: Added the `/api/v1/system/startup` API infrastructure to process startup validation background tasks while offering live polling endpoints. Connected it to `api_router`.
+- **Frontend**: Stripped the standard TASK-005 dashboard. Built the interactive `POWER ON` UI, implemented 500ms status polling to track startup completion, and styled all related components (Button, Progress Bar, Lists, Status Colors).
+- **Environment**: Updated `docker-compose.yml` to provision an `n8n` container natively, guaranteeing that the startup sequence can fully traverse the checklist without "cheating" or mocking the n8n health check status.
