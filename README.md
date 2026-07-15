@@ -2,15 +2,18 @@
 
 LeadForgeAI is a local-first Lead Intelligence Platform designed to help users discover, enrich, analyze, and organize business leads through a desktop-oriented experience.
 
-This repository is currently bootstrapped for `TASK-001`, which establishes the foundational backend and frontend applications without business features, database integration, AI, or workflow automation.
+This repository is currently bootstrapped through `TASK-002`, which establishes the foundational backend, frontend, and database infrastructure without business features, AI workflows, or application modules.
 
 ## Current Scope
 
 - FastAPI backend bootstrap
 - React + TypeScript + Vite frontend bootstrap
-- Health check integration between frontend and backend
+- PostgreSQL database bootstrap
+- SQLAlchemy 2.x async session management
+- Alembic migration setup
+- Health check integration between frontend, backend, and database
 - Docker Compose development setup
-- Environment variable template
+- Environment variable templates
 
 ## Requirements
 
@@ -22,16 +25,17 @@ This repository is currently bootstrapped for `TASK-001`, which establishes the 
 ## Installation
 
 1. Copy `.env.example` to `.env`.
-2. Install backend dependencies:
+2. Optionally copy `backend/.env.example` to `backend/.env` for backend-only local runs.
+3. Install backend dependencies:
 
 ```bash
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scriptsctivate
 pip install -r requirements.txt
 ```
 
-3. Install frontend dependencies:
+4. Install frontend dependencies:
 
 ```bash
 cd frontend
@@ -40,11 +44,24 @@ npm install
 
 ## Development
 
+### Start PostgreSQL with Docker
+
+```bash
+docker compose up -d postgres
+```
+
+### Run database migrations
+
+```bash
+cd backend
+alembic upgrade head
+```
+
 ### Run the backend
 
 ```bash
 cd backend
-.venv\Scripts\activate
+.venv\Scriptsctivate
 uvicorn main:app --reload
 ```
 
@@ -61,43 +78,65 @@ The frontend starts at [http://localhost:5173](http://localhost:5173).
 
 ## Docker
 
-Start both applications with Docker Compose:
+Start the full local stack with Docker Compose:
 
 ```bash
 docker compose up --build
 ```
 
-The compose setup is ready for future PostgreSQL and Redis services but does not include them yet.
+Included services:
+
+- PostgreSQL
+- FastAPI backend
+- React frontend
+
+## Database
+
+The backend uses:
+
+- PostgreSQL
+- SQLAlchemy 2.x async engine
+- `asyncpg`
+- Alembic for schema versioning
+
+This task intentionally creates no business tables. The only database table created at this stage is Alembic's version table.
 
 ## Available Endpoints
 
 - `GET /health`
 - `GET /api/v1/health`
 
-Example response:
+Healthy response example:
 
 ```json
 {
   "success": true,
   "status": "healthy",
-  "application": "LeadForgeAI"
+  "application": "LeadForgeAI",
+  "database": "connected"
 }
 ```
+
+If the database is unavailable, the backend returns HTTP `503` with a payload indicating `database: "disconnected"`.
 
 ## Folder Structure
 
 ```text
 LeadForgeAI/
 |-- backend/
+|   |-- alembic/
+|   |   `-- versions/
 |   |-- app/
 |   |   |-- api/
 |   |   |-- core/
+|   |   |-- dependencies/
 |   |   |-- models/
 |   |   |-- repositories/
 |   |   |-- schemas/
 |   |   |-- services/
 |   |   |-- utils/
 |   |   `-- main.py
+|   |-- alembic.ini
 |   |-- Dockerfile
 |   |-- main.py
 |   `-- requirements.txt
@@ -119,21 +158,34 @@ LeadForgeAI/
 
 ## Running Checks
 
-Backend health check:
+Backend compile check:
+
+```bash
+python -m compileall backend
+```
+
+Docker Compose validation:
+
+```bash
+docker compose config
+```
+
+Database migration check:
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+Health check:
 
 ```bash
 curl http://localhost:8000/health
 ```
 
-Frontend health check:
-
-1. Open the frontend in a browser.
-2. Click `Health Check`.
-3. Confirm the backend status updates to `Healthy`.
-
 ## Notes
 
-- No database is configured in this task.
+- No business entities are implemented in this task.
 - No AI providers are configured in this task.
-- No workflow engine is configured in this task.
-- The desktop application layer is intentionally excluded from `TASK-001`.
+- No n8n integration is configured in this task.
+- The desktop application layer is still intentionally excluded from the current task sequence.
