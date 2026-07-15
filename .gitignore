@@ -10,3 +10,6 @@ dist/
 build/
 .next/
 coverage/
+.npm-cache/
+backend/.deps/
+*.tsbuildinfo
