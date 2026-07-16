@@ -1,12 +1,21 @@
-# Git Diff Summary (TASK-011)
+# Git Diff Summary (TASK-012)
 
-## Modified Files
+## Untracked Files Added
 ```text
-frontend/src/pages/BusinessPage.tsx
+backend/app/schemas/search.py
+backend/app/services/search/__init__.py
+backend/app/services/search/engine.py
+backend/app/services/search/exceptions.py
+backend/app/services/search/normalizer.py
+backend/app/services/search/pipeline.py
+backend/app/services/search/provider.py
+backend/app/services/search/registry.py
+backend/app/services/search/validator.py
+generate_search_arch.py
 ```
 
 ## Summary of Changes
-- **Business Search UI**: Completely overhauled `BusinessPage.tsx` to serve as the primary entry point for Lead Discovery.
-- **Interactive Form Components**: Integrated Design System components (`Input`, `Dropdown`, `Switch`, `Checkbox`, `Button`) to create a comprehensive, validation-backed Search Form and collapsible Advanced Filters menu.
-- **Local State Persistence**: Implemented a `useEffect` hook pattern to persistently mirror the React form state into `localStorage` (`leadforgeai_search_form`) using a 500ms debounce, ensuring form retention across sessions.
-- **Dynamic Layout Assembly**: Organized the interface into a structured grid showcasing the active form alongside the Live Search Preview, Saved Templates, Recent Searches, and Search Tips.
+- **Search Engine Scaffolding**: Built the complete backend Search Engine module architecture.
+- **Provider Interfaces**: Implemented the strict `BaseSearchProvider` ABC to force all future external sources (Google, Yelp) to comply with LeadForgeAI's lifecycle hooks (`initialize`, `validate`, `search`, `cancel`).
+- **Domain Models**: Authored the unified `NormalizedBusiness` and `SearchRequest` Pydantic models to guarantee predictable API payloads regardless of the underlying data source.
+- **Orchestration**: Built the `SearchPipeline` and `ProviderRegistry` to handle dependency injection and robust error handling during query execution.
