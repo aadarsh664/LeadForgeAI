@@ -1,33 +1,39 @@
-# TASK-014 Completion Report
+# TASK-015 Completion Report
 
 ## Summary
-The **Business Details & Lead Profile (TASK-014)** implementation is complete. Clicking any business from the search results grid or table now seamlessly navigates to a comprehensive Lead Profile page. This profile serves as the central hub for discovering information about a business, offering read-only insights structured elegantly in a clean, high-density layout.
+The **Search History & Saved Searches (TASK-015)** implementation is complete. It introduces a robust local persistence layer on the FastAPI backend using JSON files, laying down the structural foundation for future database integration while strictly maintaining the Local-First requirement. The frontend now boasts a dedicated History Page with intuitive sub-navigation, allowing users to effortlessly review past activities, run previous searches, bookmark favorites, rename saved templates, and seamlessly inject past queries back into the main search form.
 
 ## Created & Modified Files
 
+### Backend
+- `backend/app/schemas/history.py`: Engineered the Pydantic schemas (`SearchHistoryItem`, `SavedSearch`) to strictly type all historical records.
+- `backend/app/services/history/service.py`: Implemented the `HistoryService` logic. Temporarily utilizes JSON file I/O (`backend/data/*.json`) to mimic a persistent database layer.
+- `backend/app/api/v1/endpoints/history.py`: Constructed REST endpoints to retrieve, insert, rename, favorite, and delete both standard history and saved searches.
+- `backend/app/api/v1/endpoints/search.py`: Modified the search engine executor to automatically log successful search queries to the History Service.
+- `backend/app/main.py`: Connected the new `history` router to the application.
+
 ### Frontend
-- `frontend/src/pages/BusinessProfile.tsx`: Created the robust Business Profile component containing:
-  - **Header & Navigation**: A unified header featuring the business's avatar, verification badges, ratings, and a back button to seamlessly preserve search state.
-  - **Dual-Column Grid**: A structured 2-column layout emphasizing whitespace.
-  - **Business Details**: Detailed cards summarizing categories, source provider (`Mock Provider`), verification status, and discovery date.
-  - **Contact Information**: Easy-to-read contact cards featuring icons for Phone, Email, and Website, styled with distinct hierarchical typography.
-  - **Online Presence & Location**: Pre-built placeholders for social media links (Facebook, Twitter, LinkedIn, etc.) and geographic coordinates.
-  - **AI Analysis & Campaign Placeholders**: Stubs for upcoming features. The "AI Lead Analysis" card uses a distinct dashed border to indicate future predictive scoring capabilities.
-- `frontend/src/pages/BusinessResults.tsx`: Enhanced the Card and Table views with `onClick` handlers, allowing users to select a business row/card and trigger the profile navigation. Added hover states for better click affordance.
-- `frontend/src/pages/BusinessPage.tsx`: Extended the internal state machine (`viewState`) to include the `"profile"` state, allowing fluid transitions between the Search Form, Search Results, and the new Lead Profile without losing any data.
+- `frontend/src/pages/SearchHistory.tsx`: Created a powerful dual-pane layout providing easy navigation between "Recent Searches" and "Saved Searches". Included actions such as Run Again, Duplicate, Delete, Rename, and Favorite.
+- `frontend/src/pages/BusinessPage.tsx`:
+  - Upgraded the `viewState` to handle the new `"history"` context.
+  - Intercepted the dummy "Recent Searches" widget and wired it up to fetch live historical snippets.
+  - Replaced the dummy "Saved Templates" section by injecting a "Save this Search" action directly into the Results view.
+  - Added a "History" button into the master PageHeader.
 
 ## Architecture Notes
-- The profile page leverages the existing Design System components (`Card`, `Badge`, `Avatar`, `SectionHeader`, etc.) completely, maintaining strict UI consistency.
-- All "Demo Data" badges correctly cascade down into the profile view, reminding the user that these are mock entities.
-- Placeholders for external URLs explicitly show "Not Available" if the mock provider doesn't supply the data.
+- Kept the system entirely independent of Google Maps or scraping APIs.
+- Adhered to the requirement of not utilizing external databases for now by creating a scalable file-based JSON abstraction that can easily be swapped with SQLAlchemy later.
+- Added comprehensive Empty States mirroring the Apple HIG / Linear design aesthetic when no history exists.
 
 ## Verification Steps
-1. Navigate to the **Businesses** tab.
-2. Execute a search (e.g., "Dentists" in "London").
-3. Once the results appear, click on any Business Card or Table Row.
-4. Verify the application slides into the `BusinessProfile` view without losing the underlying search array.
-5. Review the Profile to ensure all mock data fields (Phone, Website, Categories, Badges) map correctly into the UI.
-6. Click "Back to Results" and verify the view returns exactly to the previous results list.
+1. Open the UI, navigate to "Businesses".
+2. Enter a Search Request (e.g. Category: "Plumbers", Location: "Austin").
+3. Run the search. Verify it successfully returns Demo Data.
+4. From the Results page, click "Save this Search" in the top right. Name it "Austin Plumbers".
+5. Click the "History" button in the top right of the Page Header.
+6. Verify "Austin Plumbers" appears under "Saved Searches".
+7. Click "Recent Searches" in the sidebar and verify your previous search was automatically logged with a timestamp.
+8. Click the "Run Again" play button to verify the application navigates back and triggers the query automatically.
 
 ---
 **Ready for Review.**

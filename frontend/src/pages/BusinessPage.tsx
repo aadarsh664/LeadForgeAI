@@ -14,9 +14,10 @@ import {
   Dropdown,
   Loader
 } from "../design-system/components";
-import { Search, RotateCcw, ChevronDown, ChevronUp, Clock, Sparkles } from "lucide-react";
+import { Search, RotateCcw, ChevronDown, ChevronUp, Clock, Sparkles, Bookmark, History } from "lucide-react";
 import BusinessResults from "./BusinessResults";
 import BusinessProfile from "./BusinessProfile";
+import SearchHistory from "./SearchHistory";
 import type { NormalizedBusiness } from "../types/search";
 
 interface SearchFormState {
@@ -68,7 +69,7 @@ const defaultFilters: FilterState = {
 };
 
 export default function BusinessPage() {
-  const [viewState, setViewState] = useState<"form" | "loading" | "results" | "error" | "profile">("form");
+  const [viewState, setViewState] = useState<"form" | "loading" | "results" | "error" | "profile" | "history">("form");
   const [form, setForm] = useState<SearchFormState>(defaultForm);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -76,6 +77,19 @@ export default function BusinessPage() {
   const [results, setResults] = useState<NormalizedBusiness[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedBusiness, setSelectedBusiness] = useState<NormalizedBusiness | null>(null);
+
+  // Recent History snippet for the right column
+  const [recentSnippet, setRecentSnippet] = useState<any[]>([]);
+
+  const loadSnippet = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/history/history");
+      const data = await res.json();
+      setRecentSnippet(data.slice(0, 3));
+    } catch(e) {
+      // ignore
+    }
+  };
 
   // Load persisted state
   useEffect(() => {
@@ -89,6 +103,7 @@ export default function BusinessPage() {
         console.error("Failed to parse saved search form", e);
       }
     }
+    loadSnippet();
   }, []);
 
   // Save state on change
@@ -107,35 +122,13 @@ export default function BusinessPage() {
     localStorage.removeItem("leadforgeai_search_form");
   };
 
-  const handleSearch = async () => {
-    if (!isValid) return;
+  const executeSearchRequest = async (requestBody: any) => {
     setViewState("loading");
-    
     try {
       const response = await fetch("http://localhost:8000/api/v1/search/businesses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category: form.category,
-          location: form.location,
-          keywords: form.keywords,
-          country: form.country,
-          state: form.state,
-          city: form.city,
-          radius: parseInt(form.radius) || 10,
-          max_results: parseInt(form.maxResults) || 500,
-          language: form.language,
-          filters: {
-            has_website: filters.hasWebsite,
-            has_email: filters.hasEmail,
-            has_phone: filters.hasPhone,
-            min_rating: filters.minRating ? parseFloat(filters.minRating) : null,
-            min_reviews: filters.minReviews ? parseInt(filters.minReviews) : null,
-            open_now: filters.openNow,
-            verified: filters.verified,
-            hide_closed: filters.hideClosed
-          }
-        })
+        body: JSON.stringify(requestBody)
       });
       
       const data = await response.json();
@@ -143,15 +136,101 @@ export default function BusinessPage() {
       
       setResults(data.results || []);
       setViewState("results");
+      loadSnippet();
     } catch (err: any) {
       setErrorMsg(err.message || "An unknown error occurred");
       setViewState("error");
     }
+  }
+
+  const handleSearch = async () => {
+    if (!isValid) return;
+    const requestBody = {
+      category: form.category,
+      location: form.location,
+      keywords: form.keywords,
+      country: form.country,
+      state: form.state,
+      city: form.city,
+      radius: parseInt(form.radius) || 10,
+      max_results: parseInt(form.maxResults) || 500,
+      language: form.language,
+      filters: {
+        has_website: filters.hasWebsite,
+        has_email: filters.hasEmail,
+        has_phone: filters.hasPhone,
+        min_rating: filters.minRating ? parseFloat(filters.minRating) : null,
+        min_reviews: filters.minReviews ? parseInt(filters.minReviews) : null,
+        open_now: filters.openNow,
+        verified: filters.verified,
+        hide_closed: filters.hideClosed
+      }
+    };
+    await executeSearchRequest(requestBody);
   };
 
-  const handleSelectBusiness = (business: NormalizedBusiness) => {
-    setSelectedBusiness(business);
-    setViewState("profile");
+  const handleSaveSearch = async () => {
+    const name = prompt("Enter a name for this saved search:", `${form.category} in ${form.location}`);
+    if (name) {
+      const requestBody = {
+        category: form.category,
+        location: form.location,
+        keywords: form.keywords,
+        country: form.country,
+        state: form.state,
+        city: form.city,
+        radius: parseInt(form.radius) || 10,
+        max_results: parseInt(form.maxResults) || 500,
+        language: form.language,
+        filters: {
+          has_website: filters.hasWebsite,
+          has_email: filters.hasEmail,
+          has_phone: filters.hasPhone,
+          min_rating: filters.minRating ? parseFloat(filters.minRating) : null,
+          min_reviews: filters.minReviews ? parseInt(filters.minReviews) : null,
+          open_now: filters.openNow,
+          verified: filters.verified,
+          hide_closed: filters.hideClosed
+        }
+      };
+      const res = await fetch("http://localhost:8000/api/v1/history/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, request: requestBody })
+      });
+      if (res.ok) {
+        alert("Search saved successfully!");
+      } else {
+        alert("Failed to save search (Name might already exist).");
+      }
+    }
+  };
+
+  const handleRunFromHistory = (req: any) => {
+    // Populate form from req
+    setForm({
+      category: req.category || "",
+      location: req.location || "",
+      radius: (req.radius || 10).toString(),
+      language: req.language || "en",
+      maxResults: (req.max_results || 500).toString(),
+      country: req.country || "",
+      state: req.state || "",
+      city: req.city || "",
+      keywords: req.keywords || "",
+      excludeKeywords: ""
+    });
+    setFilters({
+      hasWebsite: req.filters?.has_website || false,
+      hasEmail: req.filters?.has_email || false,
+      hasPhone: req.filters?.has_phone || false,
+      minRating: req.filters?.min_rating ? req.filters.min_rating.toString() : "",
+      minReviews: req.filters?.min_reviews ? req.filters.min_reviews.toString() : "",
+      openNow: req.filters?.open_now || false,
+      verified: req.filters?.verified || false,
+      hideClosed: req.filters?.hide_closed || false
+    });
+    executeSearchRequest(req);
   };
 
   if (viewState === "loading") {
@@ -188,6 +267,14 @@ export default function BusinessPage() {
     );
   }
 
+  if (viewState === "history") {
+    return (
+      <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
+        <SearchHistory onBack={() => { setViewState("form"); loadSnippet(); }} onRunSearch={handleRunFromHistory} />
+      </div>
+    );
+  }
+
   if (viewState === "results") {
     if (results.length === 0) {
       return (
@@ -203,10 +290,13 @@ export default function BusinessPage() {
     
     return (
       <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+          <Button variant="secondary" onClick={handleSaveSearch} icon={<Bookmark size={16}/>}>Save this Search</Button>
+        </div>
         <BusinessResults 
           results={results} 
           onBack={() => setViewState("form")} 
-          onSelect={handleSelectBusiness}
+          onSelect={(b) => { setSelectedBusiness(b); setViewState("profile"); }}
         />
       </div>
     );
@@ -219,6 +309,7 @@ export default function BusinessPage() {
         description="Discover local businesses and generate high-quality leads."
         action={
           <div style={{ display: 'flex', gap: '12px' }}>
+            <Button variant="ghost" onClick={() => setViewState("history")} icon={<History size={16}/>}>History</Button>
             <Button variant="ghost" onClick={handleReset} icon={<RotateCcw size={16}/>}>Reset</Button>
             <Button variant="primary" onClick={handleSearch} disabled={!isValid} icon={<Search size={16}/>}>Search</Button>
           </div>
@@ -423,33 +514,29 @@ export default function BusinessPage() {
           </Card>
 
           <Card>
-            <SectionHeader title="Saved Templates" />
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {["Local Businesses", "Restaurants", "Hospitals", "Schools", "Gyms", "Real Estate", "Lawyers", "Hotels", "Clinics"].map(t => (
-                <Badge key={t} variant="default" style={{ cursor: "pointer", padding: "6px 12px", border: "1px solid var(--color-border-subtle)" }}>
-                  {t}
-                </Badge>
-              ))}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <SectionHeader title="Recent Searches" style={{ margin: 0 }} />
+              <Button variant="ghost" size="small" onClick={() => setViewState("history")}>View All</Button>
             </div>
-          </Card>
-
-          <Card>
-            <SectionHeader title="Recent Searches" />
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 0", color: "var(--color-text-tertiary)" }}>
-              <Clock size={24} style={{ marginBottom: "8px", opacity: 0.5 }} />
-              <Text style={{ fontSize: "0.85rem" }}>No searches yet</Text>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {recentSnippet.length === 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0", color: "var(--color-text-tertiary)" }}>
+                  <Clock size={24} style={{ marginBottom: "8px", opacity: 0.5 }} />
+                  <Text style={{ fontSize: "0.85rem" }}>No searches yet</Text>
+                </div>
+              ) : (
+                recentSnippet.map((s, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", background: "var(--color-bg-subtle)", borderRadius: "var(--radius-sm)", cursor: "pointer" }} onClick={() => handleRunFromHistory(s.request)}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <Text style={{ margin: 0, fontWeight: 500, fontSize: "0.85rem" }}>{s.request.category}</Text>
+                      <Text style={{ margin: 0, fontSize: "0.75rem", color: "var(--color-text-secondary)" }}>{s.request.location}</Text>
+                    </div>
+                    <Badge variant="default" style={{ zoom: 0.8 }}>{s.result_count}</Badge>
+                  </div>
+                ))
+              )}
             </div>
-          </Card>
-
-          <Card>
-            <SectionHeader title="Search Tips" />
-            <ul style={{ margin: 0, padding: "0 0 0 16px", fontSize: "0.85rem", color: "var(--color-text-secondary)", display: "flex", flexDirection: "column", gap: "8px" }}>
-              <li>Be specific with your location (City + State works best).</li>
-              <li>Use keywords to narrow down niche businesses.</li>
-              <li>Exclude words like "chain" to find independent shops.</li>
-              <li>Set a radius to restrict wide area searches.</li>
-              <li>Filter by "Has Website" for higher quality leads.</li>
-            </ul>
           </Card>
 
         </div>
