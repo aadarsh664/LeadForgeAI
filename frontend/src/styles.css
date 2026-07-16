@@ -1,3 +1,4 @@
+@import './design-system/tokens/design-system.css';
 :root {
   color: #111827;
   background-color: #f3f4f6;
