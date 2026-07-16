@@ -194,23 +194,23 @@ export default function BusinessProfile({ business, onBack }: BusinessProfilePro
 
           {/* Online Presence */}
           <Card>
-            <SectionHeader title="Online Presence" />
+            <SectionHeader title="Online Presence & Enrichment" />
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Sparkles size={16}/> <span>Lead Score</span></div>
+                <Badge variant="warning">Pending Enrichment</Badge>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>Facebook</span></div>
-                <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
+                <Text style={{ margin: 0, fontSize: "0.85rem", fontStyle: "italic", color: "var(--color-text-tertiary)" }}>Pending Enrichment</Text>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>Instagram</span></div>
-                <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>Twitter/X</span></div>
-                <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
+                <Text style={{ margin: 0, fontSize: "0.85rem", fontStyle: "italic", color: "var(--color-text-tertiary)" }}>Pending Enrichment</Text>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>LinkedIn</span></div>
-                <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
+                <Text style={{ margin: 0, fontSize: "0.85rem", fontStyle: "italic", color: "var(--color-text-tertiary)" }}>Pending Enrichment</Text>
               </div>
             </div>
           </Card>

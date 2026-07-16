@@ -18,12 +18,32 @@ interface BusinessResultsProps {
 export default function BusinessResults({ results, onBack, onSelect }: BusinessResultsProps) {
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<string>("relevance");
+
+  const processedResults = React.useMemo(() => {
+    const unique = new Map<string, NormalizedBusiness>();
+    for (const b of results) {
+      const key = `${b.name.toLowerCase().trim()}|${b.phone?.replace(/\D/g, "") || b.address?.toLowerCase().trim() || b.business_id}`;
+      if (!unique.has(key)) {
+        unique.set(key, b);
+      }
+    }
+    let arr = Array.from(unique.values());
+
+    arr.sort((a, b) => {
+      if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === "reviews") return (b.reviews || 0) - (a.reviews || 0);
+      return 0;
+    });
+
+    return arr;
+  }, [results, sortBy]);
 
   const handleSelectAll = () => {
-    if (selectedIds.size === results.length) {
+    if (selectedIds.size === processedResults.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(results.map(r => r.business_id)));
+      setSelectedIds(new Set(processedResults.map(r => r.business_id)));
     }
   };
 
@@ -43,12 +63,14 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div>
             <H3 style={{ margin: 0 }}>Search Results</H3>
-            <Text style={{ margin: "4px 0 0 0", fontSize: "0.85rem" }}>{results.length} businesses found</Text>
+            <Text style={{ margin: "4px 0 0 0", fontSize: "0.85rem" }}>
+              {processedResults.length} businesses found {processedResults.length < results.length && `(removed ${results.length - processedResults.length} duplicates)`}
+            </Text>
           </div>
           <Divider style={{ width: "1px", height: "32px", borderTop: "none", borderLeft: "1px solid var(--color-border-default)", margin: 0 }} />
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <Button variant="ghost" onClick={handleSelectAll} icon={selectedIds.size === results.length ? <CheckSquare size={16}/> : <Square size={16}/>}>
-              {selectedIds.size === results.length ? "Deselect All" : "Select All"}
+            <Button variant="ghost" onClick={handleSelectAll} icon={selectedIds.size === processedResults.length && processedResults.length > 0 ? <CheckSquare size={16}/> : <Square size={16}/>}>
+              {selectedIds.size === processedResults.length && processedResults.length > 0 ? "Deselect All" : "Select All"}
             </Button>
             <span style={{ fontSize: "0.85rem", color: "var(--color-text-tertiary)" }}>
               {selectedIds.size} selected
@@ -59,8 +81,8 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <Dropdown 
             label=""
-            value="relevance"
-            onChange={() => {}}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
             options={[
               { label: "Sort: Relevance", value: "relevance" },
               { label: "Sort: Rating", value: "rating" },
@@ -90,7 +112,7 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
       {/* Content */}
       {viewMode === "card" ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "24px" }}>
-          {results.map(business => (
+          {processedResults.map(business => (
             <Card 
               key={business.business_id} 
               style={{ display: "flex", flexDirection: "column", gap: "16px", cursor: "pointer", transition: "all var(--transition-fast)" }}
@@ -128,10 +150,20 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
                   <Phone size={16} /> <span>{business.phone}</span>
                 </div>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <Globe size={16} /> <a href={business.website} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: "var(--color-primary)", textDecoration: "none" }}>{business.website}</a>
+                  <Globe size={16} /> 
+                  {business.website ? (
+                    <a href={business.website} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: "var(--color-primary)", textDecoration: "none" }}>{business.website}</a>
+                  ) : (
+                    <span style={{ fontStyle: "italic", color: "var(--color-text-tertiary)" }}>Website Pending</span>
+                  )}
                 </div>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <Mail size={16} /> <span>{business.email}</span>
+                  <Mail size={16} /> 
+                  {business.email ? (
+                    <span>{business.email}</span>
+                  ) : (
+                    <span style={{ fontStyle: "italic", color: "var(--color-text-tertiary)" }}>Pending Enrichment</span>
+                  )}
                 </div>
               </div>
               
@@ -143,7 +175,7 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
             <thead>
               <tr style={{ background: "var(--color-bg-subtle)", borderBottom: "1px solid var(--color-border-subtle)", textAlign: "left", color: "var(--color-text-secondary)" }}>
-                <th style={{ padding: "16px", width: "40px" }}><Checkbox checked={selectedIds.size === results.length && results.length > 0} onChange={handleSelectAll}/></th>
+                <th style={{ padding: "16px", width: "40px" }}><Checkbox checked={selectedIds.size === processedResults.length && processedResults.length > 0} onChange={handleSelectAll}/></th>
                 <th style={{ padding: "16px" }}>Business</th>
                 <th style={{ padding: "16px" }}>Rating</th>
                 <th style={{ padding: "16px" }}>Contact</th>
@@ -151,7 +183,7 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
               </tr>
             </thead>
             <tbody>
-              {results.map(business => (
+              {processedResults.map(business => (
                 <tr 
                   key={business.business_id} 
                   style={{ borderBottom: "1px solid var(--color-border-subtle)", cursor: "pointer", transition: "background var(--transition-fast)" }}
@@ -175,8 +207,8 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
                     <div style={{ color: "var(--color-text-tertiary)", marginTop: "4px" }}>{business.reviews} reviews</div>
                   </td>
                   <td style={{ padding: "16px", color: "var(--color-text-secondary)" }}>
-                    <div>{business.phone}</div>
-                    <div>{business.email}</div>
+                    <div>{business.phone || <span style={{ fontStyle: "italic", color: "var(--color-text-tertiary)" }}>No phone</span>}</div>
+                    <div>{business.email || <span style={{ fontStyle: "italic", color: "var(--color-text-tertiary)" }}>Pending Enrichment</span>}</div>
                   </td>
                   <td style={{ padding: "16px", color: "var(--color-text-secondary)" }}>
                     <div>{business.address}</div>

@@ -51,6 +51,16 @@ export default function JobProgressCard({ job, onCancel, onRetry }: JobProgressC
           <span>Target</span>
           <span style={{ fontWeight: 500, color: "var(--color-text-primary)" }}>{job.request.category} in {job.request.location}</span>
         </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span>Businesses Found</span>
+          <span style={{ fontWeight: 500, color: "var(--color-primary)" }}>{job.results?.length || 0}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span>Elapsed Time</span>
+          <span style={{ fontWeight: 500, color: "var(--color-text-primary)" }}>
+            {job.progress?.duration_seconds ? `${Math.floor(job.progress.duration_seconds)}s` : isActive ? "Running..." : "0s"}
+          </span>
+        </div>
         {job.error && (
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", color: "var(--color-danger)" }}>
             <span>Error</span>

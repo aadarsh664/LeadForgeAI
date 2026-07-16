@@ -72,29 +72,38 @@ class WorkerManager:
         start_time = time.time()
         
         try:
-            # We bypass SearchEngine's run_search wrapper to stream progress
-            # For simplicity in mock, run_search returns quickly but in a real system we'd consume the async generator.
-            # Here we just use the engine and simulate progress.
-            response = await self.engine.run_search(job.request, provider_name=job.provider)
-            
-            # Simulate some processing time for UI progress demonstration
-            for i in range(1, 11):
-                await asyncio.sleep(0.3)
-                job.progress.percentage = i * 10
-                job.progress.stage = f"Fetching results ({i*10}%)"
+            async for partial_response in self.engine.stream_search(job.request, provider_name=job.provider):
+                if job.status == JobStatus.CANCELLED:
+                    break
+                
+                # Update progress based on partial_response
+                job.progress.percentage = partial_response.progress
+                
+                if partial_response.status == "completed":
+                    job.progress.stage = "Completed"
+                    job.status = JobStatus.COMPLETED
+                    job.results = partial_response.results
+                elif partial_response.status == "failed":
+                    job.progress.stage = "Failed"
+                    job.status = JobStatus.FAILED
+                    job.error = partial_response.error
+                    job.results = partial_response.results
+                else:
+                    if job.progress.percentage < 10:
+                        job.progress.stage = "Initializing Browser"
+                    else:
+                        job.progress.stage = f"Fetching results ({len(partial_response.results)} found)"
+                    job.results = partial_response.results
+                    
                 self.repo.save(job)
                 
-            job.results = response.results
-            job.status = JobStatus.COMPLETED
-            job.progress.percentage = 100
-            job.progress.stage = "Completed"
-            
-            # Save history
-            try:
-                self.history.add_history(job.request, provider=job.provider, result_count=len(job.results))
-            except:
-                pass
-                
+            # Save history if completed
+            if job.status == JobStatus.COMPLETED:
+                try:
+                    self.history.add_history(job.request, provider=job.provider, result_count=len(job.results))
+                except:
+                    pass
+                    
         except asyncio.CancelledError:
             job.status = JobStatus.CANCELLED
             job.progress.stage = "Cancelled"
@@ -110,6 +119,14 @@ class WorkerManager:
                 del self.active_tasks[job_id]
 
     async def worker_loop(self):
+        # Startup Recovery: Queue all 'Running' or 'Queued' jobs
+        for job in self.repo.jobs.values():
+            if job.status in [JobStatus.RUNNING, JobStatus.QUEUED]:
+                job.status = JobStatus.QUEUED
+                job.progress.stage = "Resumed after restart"
+                self.repo.save(job)
+                await self.queue.put(job.id)
+
         while True:
             job_id = await self.queue.get()
             # Start execution task

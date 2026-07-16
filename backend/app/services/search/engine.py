@@ -23,3 +23,15 @@ class SearchEngine:
         # 3. Create pipeline and execute
         pipeline = SearchPipeline(provider=provider, provider_name=provider_name)
         return await pipeline.execute(request)
+
+    async def stream_search(self, request: SearchRequest, provider_name: Optional[str] = None):
+        self.validator.validate(request)
+        if provider_name:
+            provider = self.registry.get_provider(provider_name)
+        else:
+            provider = self.registry.get_default_provider()
+            provider_name = self.registry.list_providers()[0]
+            
+        pipeline = SearchPipeline(provider=provider, provider_name=provider_name)
+        async for partial_response in pipeline.execute_stream(request):
+            yield partial_response

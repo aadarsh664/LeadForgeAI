@@ -112,6 +112,20 @@ export default function BusinessPage() {
     loadSnippet();
   }, []);
 
+  const activeResults = React.useMemo(() => {
+    return results.filter((b) => {
+      if (filters.hasWebsite && !b.website) return false;
+      if (filters.hasPhone && !b.phone) return false;
+      if (filters.hasEmail && !b.email) return false;
+      if (filters.minRating && (b.rating || 0) < parseFloat(filters.minRating)) return false;
+      if (filters.minReviews && (b.reviews || 0) < parseInt(filters.minReviews)) return false;
+      if (filters.openNow && !b.is_open) return false;
+      if (filters.verified && !b.is_verified) return false;
+      if (filters.hideClosed && b.is_closed) return false;
+      return true;
+    });
+  }, [results, filters]);
+
   // Save state on change
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -323,7 +337,7 @@ export default function BusinessPage() {
   }
 
   if (viewState === "results") {
-    if (results.length === 0) {
+    if (activeResults.length === 0) {
       return (
         <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
           <Card style={{ textAlign: "center", padding: "64px 24px", maxWidth: "600px", margin: "64px auto" }}>
@@ -341,7 +355,7 @@ export default function BusinessPage() {
           <Button variant="secondary" onClick={handleSaveSearch} icon={<Bookmark size={16}/>}>Save this Search</Button>
         </div>
         <BusinessResults 
-          results={results} 
+          results={activeResults} 
           onBack={() => setViewState("form")} 
           onSelect={(b) => { setSelectedBusiness(b); setViewState("profile"); }}
         />

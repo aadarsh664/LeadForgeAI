@@ -15,6 +15,12 @@ class SearchPipeline:
         self.normalizer = SearchNormalizer()
 
     async def execute(self, request: SearchRequest) -> SearchResponse:
+        response = None
+        async for res in self.execute_stream(request):
+            response = res
+        return response
+
+    async def execute_stream(self, request: SearchRequest):
         search_id = str(uuid.uuid4())
         started_at = datetime.now(timezone.utc)
         start_time = time.time()
@@ -28,18 +34,36 @@ class SearchPipeline:
         )
 
         try:
+            # Yield initialization
+            response.progress = 5
+            yield response
+            
             await self.provider.initialize()
             is_valid = await self.provider.validate(request)
             if not is_valid:
                 raise ProviderExecutionError("Provider rejected the search request.")
+            
+            # Yield pre-search
+            response.progress = 10
+            yield response
             
             all_results = []
             async for raw_batch in self.provider.search(request):
                 normalized_batch = self.normalizer.normalize_batch(raw_batch, self.provider_name)
                 all_results.extend(normalized_batch)
                 
-            response.results = all_results
-            response.result_count = len(all_results)
+                response.results = all_results.copy()
+                response.result_count = len(all_results)
+                
+                # Estimate progress (up to 95%)
+                if request.max_results > 0:
+                    prog = 10 + int(85 * (len(all_results) / request.max_results))
+                    response.progress = min(95, prog)
+                else:
+                    response.progress = min(95, response.progress + 5)
+                
+                yield response
+                
             response.status = "completed"
             response.progress = 100
         except Exception as e:
@@ -48,5 +72,4 @@ class SearchPipeline:
         finally:
             response.finished_at = datetime.now(timezone.utc)
             response.duration = time.time() - start_time
-
-        return response
+            yield response
