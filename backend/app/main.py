@@ -25,3 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(worker_manager.worker_loop())

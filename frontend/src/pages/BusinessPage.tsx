@@ -32,6 +32,7 @@ interface SearchFormState {
   city: string;
   keywords: string;
   excludeKeywords: string;
+  provider: string;
 }
 
 interface FilterState {
@@ -55,7 +56,8 @@ const defaultForm: SearchFormState = {
   state: "",
   city: "",
   keywords: "",
-  excludeKeywords: ""
+  excludeKeywords: "",
+  provider: "google_maps"
 };
 
 const defaultFilters: FilterState = {
@@ -183,6 +185,7 @@ export default function BusinessPage() {
       city: form.city,
       radius: parseInt(form.radius) || 10,
       max_results: parseInt(form.maxResults) || 500,
+      provider: form.provider,
       language: form.language,
       filters: {
         has_website: filters.hasWebsite,
@@ -223,6 +226,7 @@ export default function BusinessPage() {
         city: form.city,
         radius: parseInt(form.radius) || 10,
         max_results: parseInt(form.maxResults) || 500,
+      provider: form.provider,
         language: form.language,
         filters: {
           has_website: filters.hasWebsite,
@@ -514,41 +518,41 @@ export default function BusinessPage() {
         {/* Right Column: Previews & History */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
-          <Card style={{ backgroundColor: "var(--color-primary)", color: "var(--color-text-inverse)", borderColor: "transparent" }}>
+          <Card>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
               <Sparkles size={16} />
-              <H3 style={{ margin: 0, color: "var(--color-text-inverse)", fontSize: "1rem" }}>Search Preview</H3>
+              <H3 style={{ margin: 0, fontSize: "1rem" }}>Search Preview</H3>
             </div>
             
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontFamily: "var(--font-family-mono)", fontSize: "0.85rem", color: "rgba(255,255,255,0.8)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontFamily: "var(--font-family-mono)", fontSize: "0.85rem", color: "var(--color-text-secondary)" }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>Category</span>
-                <span style={{ color: "white", fontWeight: 600 }}>{form.category || "Any"}</span>
+                <span style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>{form.category || "Any"}</span>
               </div>
-              <Divider style={{ borderColor: "rgba(255,255,255,0.1)", margin: "4px 0" }} />
+              <Divider style={{ margin: "4px 0" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>Location</span>
-                <span style={{ color: "white", fontWeight: 600 }}>{form.location || "Anywhere"}</span>
+                <span style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>{form.location || "Anywhere"}</span>
               </div>
               {form.country && (
                 <>
-                  <Divider style={{ borderColor: "rgba(255,255,255,0.1)", margin: "4px 0" }} />
+                  <Divider style={{ margin: "4px 0" }} />
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Country</span>
-                    <span style={{ color: "white", fontWeight: 600 }}>{form.country}</span>
+                    <span style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>{form.country}</span>
                   </div>
                 </>
               )}
-              <Divider style={{ borderColor: "rgba(255,255,255,0.1)", margin: "4px 0" }} />
+              <Divider style={{ margin: "4px 0" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>Max Results</span>
-                <span style={{ color: "white", fontWeight: 600 }}>{form.maxResults || "500"}</span>
+                <span style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>{form.maxResults || "500"}</span>
               </div>
             </div>
             
             <Button 
-              variant="secondary" 
-              style={{ width: "100%", marginTop: "24px", color: "var(--color-primary)", background: "white" }}
+              variant="primary" 
+              style={{ width: "100%", marginTop: "24px" }}
               disabled={!isValid}
               onClick={handleSearch}
             >

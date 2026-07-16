@@ -5,7 +5,7 @@ import {
 } from "../design-system/components";
 import { 
   ArrowLeft, Star, Phone, Globe, Mail, MapPin, CheckCircle2,
-  Facebook, Twitter, Linkedin, Instagram, Youtube, Clock, FileText,
+  Clock, FileText,
   Map, Calendar, Database, Sparkles, Megaphone, CheckCircle
 } from "lucide-react";
 import type { NormalizedBusiness } from "../../types/search";
@@ -197,19 +197,19 @@ export default function BusinessProfile({ business, onBack }: BusinessProfilePro
             <SectionHeader title="Online Presence" />
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Facebook size={16}/> <span>Facebook</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>Facebook</span></div>
                 <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Instagram size={16}/> <span>Instagram</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>Instagram</span></div>
                 <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Twitter size={16}/> <span>Twitter/X</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>Twitter/X</span></div>
                 <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Linkedin size={16}/> <span>LinkedIn</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-text-secondary)" }}><Globe size={16}/> <span>LinkedIn</span></div>
                 <Text style={{ margin: 0, fontSize: "0.85rem" }}>Not Available</Text>
               </div>
             </div>

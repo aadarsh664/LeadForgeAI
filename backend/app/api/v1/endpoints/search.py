@@ -12,7 +12,7 @@ async def search_businesses(
     engine: SearchEngine = Depends(get_search_engine)
 ):
     # Always use mock provider for now
-    response = await engine.run_search(request, provider_name="mock")
+    response = await engine.run_search(request, provider_name=request.provider if hasattr(request, "provider") and request.provider else "google_maps")
     
     # Log to history
     try:

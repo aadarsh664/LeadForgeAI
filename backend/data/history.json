@@ -1,0 +1,114 @@
+[
+  {
+    "id": "970344d9-63df-44ea-800d-ac05fdf88461",
+    "request": {
+      "category": "School",
+      "location": "Patna",
+      "keywords": "Private",
+      "country": "India",
+      "state": "Bihar",
+      "city": "Patna",
+      "radius": 10,
+      "max_results": 10,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "result_count": 0,
+    "created_at": "2026-07-16T17:51:01.562539Z"
+  },
+  {
+    "id": "baca6b8e-edfb-42f4-b8f8-9dadb0202f27",
+    "request": {
+      "category": "School",
+      "location": "Patna",
+      "keywords": "Private",
+      "country": "India",
+      "state": "Bihar",
+      "city": "Patna",
+      "radius": 10,
+      "max_results": 10,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "result_count": 0,
+    "created_at": "2026-07-16T17:50:07.322149Z"
+  },
+  {
+    "id": "42119277-59a9-4f82-8711-bdfe9cf5cfa2",
+    "request": {
+      "category": "School",
+      "location": "Patna",
+      "keywords": "Private",
+      "country": "India",
+      "state": "Bihar",
+      "city": "Patna",
+      "radius": 10,
+      "max_results": 10,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "result_count": 0,
+    "created_at": "2026-07-16T17:49:04.557421Z"
+  },
+  {
+    "id": "092c3a92-0f9e-41a2-92c5-d3ab3c40b2ed",
+    "request": {
+      "category": "Plumbers",
+      "location": "Austin",
+      "keywords": "",
+      "country": "",
+      "state": "",
+      "city": "",
+      "radius": 10,
+      "max_results": 500,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "result_count": 0,
+    "created_at": "2026-07-16T17:44:59.240915Z"
+  }
+]

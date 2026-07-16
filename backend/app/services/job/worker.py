@@ -19,7 +19,7 @@ class WorkerManager:
         self.history = HistoryService()
         self.active_tasks: Dict[str, asyncio.Task] = {}
         
-    async def create_job(self, request: SearchRequest, provider: str = "mock") -> SearchJob:
+    async def create_job(self, request: SearchRequest, provider: str = "google_maps") -> SearchJob:
         job = SearchJob(
             id=str(uuid.uuid4()),
             request=request,

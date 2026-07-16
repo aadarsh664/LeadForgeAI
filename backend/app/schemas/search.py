@@ -23,6 +23,7 @@ class SearchRequest(BaseModel):
     max_results: Optional[int] = Field(500, description="Maximum number of results to fetch")
     language: Optional[str] = Field("en", description="Language code")
     filters: Optional[SearchFilters] = None
+    provider: Optional[str] = "google_maps"
 
 class NormalizedBusiness(BaseModel):
     business_id: str

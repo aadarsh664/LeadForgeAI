@@ -1,25 +1,19 @@
-from fastapi import Request
 from app.services.search.engine import SearchEngine
 from app.services.search.registry import ProviderRegistry
 from app.services.search.providers.mock import MockSearchProvider
-from app.services.job.repository import JobRepository
-from app.services.job.worker import SearchWorker
+from app.services.search.providers.google_maps import GoogleMapsProvider
+from app.services.search.providers.google_maps.playwright_adapter import PlaywrightAdapter
 
-# Initialize singleton registry and engine
+# Initialize registry and register providers
 _registry = ProviderRegistry()
 _registry.register("mock", MockSearchProvider())
-_search_engine = SearchEngine(_registry)
 
-_job_repo = JobRepository()
-_worker = SearchWorker(_job_repo, _search_engine)
-# Start worker on import (simplistic, for FastAPI lifespan is better but this works for local)
-_worker.start()
+# Register Google Maps with Playwright
+google_maps_provider = GoogleMapsProvider(adapter=PlaywrightAdapter())
+_registry.register("google_maps", google_maps_provider)
+
+# Set the default engine
+_search_engine = SearchEngine(_registry)
 
 def get_search_engine() -> SearchEngine:
     return _search_engine
-
-def get_job_repository() -> JobRepository:
-    return _job_repo
-
-def get_search_worker() -> SearchWorker:
-    return _worker

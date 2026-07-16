@@ -1,0 +1,162 @@
+[
+  {
+    "id": "bce1139b-dfe1-49eb-b527-278581534525",
+    "request": {
+      "category": "School",
+      "location": "Patna",
+      "keywords": "Private",
+      "country": "India",
+      "state": "Bihar",
+      "city": "Patna",
+      "radius": 10,
+      "max_results": 10,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "status": "Completed",
+    "progress": {
+      "percentage": 100,
+      "stage": "Completed",
+      "processed_count": 0,
+      "estimated_remaining_seconds": null,
+      "started_at": "2026-07-16T17:49:57.573660Z",
+      "finished_at": "2026-07-16T17:51:01.567292Z",
+      "duration_seconds": 63.98001456260681
+    },
+    "results": [],
+    "error": null,
+    "created_at": "2026-07-16T17:49:57.542184Z",
+    "updated_at": "2026-07-16T17:51:01.575848Z"
+  },
+  {
+    "id": "6daa277a-89cd-4989-8da1-0e1b79159829",
+    "request": {
+      "category": "School",
+      "location": "Patna",
+      "keywords": "Private",
+      "country": "India",
+      "state": "Bihar",
+      "city": "Patna",
+      "radius": 10,
+      "max_results": 10,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "status": "Completed",
+    "progress": {
+      "percentage": 100,
+      "stage": "Completed",
+      "processed_count": 0,
+      "estimated_remaining_seconds": null,
+      "started_at": "2026-07-16T17:49:02.891945Z",
+      "finished_at": "2026-07-16T17:50:07.326682Z",
+      "duration_seconds": 64.42364716529846
+    },
+    "results": [],
+    "error": null,
+    "created_at": "2026-07-16T17:49:02.867794Z",
+    "updated_at": "2026-07-16T17:50:07.334250Z"
+  },
+  {
+    "id": "1132f043-6245-464d-bdc4-e64b58483c13",
+    "request": {
+      "category": "School",
+      "location": "Patna",
+      "keywords": "Private",
+      "country": "India",
+      "state": "Bihar",
+      "city": "Patna",
+      "radius": 10,
+      "max_results": 10,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "status": "Completed",
+    "progress": {
+      "percentage": 100,
+      "stage": "Completed",
+      "processed_count": 0,
+      "estimated_remaining_seconds": null,
+      "started_at": "2026-07-16T17:48:00.297653Z",
+      "finished_at": "2026-07-16T17:49:04.564873Z",
+      "duration_seconds": 64.25341844558716
+    },
+    "results": [],
+    "error": null,
+    "created_at": "2026-07-16T17:48:00.262615Z",
+    "updated_at": "2026-07-16T17:49:04.584277Z"
+  },
+  {
+    "id": "134b6a22-2962-4c02-a1fc-a160e14bbf99",
+    "request": {
+      "category": "Plumbers",
+      "location": "Austin",
+      "keywords": "",
+      "country": "",
+      "state": "",
+      "city": "",
+      "radius": 10,
+      "max_results": 500,
+      "language": "en",
+      "filters": {
+        "has_website": false,
+        "has_email": false,
+        "has_phone": false,
+        "min_rating": null,
+        "min_reviews": null,
+        "open_now": false,
+        "verified": false,
+        "hide_closed": false
+      },
+      "provider": "google_maps"
+    },
+    "provider": "google_maps",
+    "status": "Completed",
+    "progress": {
+      "percentage": 100,
+      "stage": "Completed",
+      "processed_count": 0,
+      "estimated_remaining_seconds": null,
+      "started_at": "2026-07-16T17:43:49.200760Z",
+      "finished_at": "2026-07-16T17:44:59.245837Z",
+      "duration_seconds": 70.01938056945801
+    },
+    "results": [],
+    "error": null,
+    "created_at": "2026-07-16T17:43:23.875420Z",
+    "updated_at": "2026-07-16T17:44:59.253428Z"
+  }
+]
