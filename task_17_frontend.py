@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import os
+
+dev_page = """import React, { useState, useEffect } from "react";
 import { PageHeader, Card, H3, Text, Badge, Divider } from "../design-system/components";
 import { Activity, Server, ShieldAlert, Cpu, Settings as SettingsIcon } from "lucide-react";
 
@@ -105,3 +107,7 @@ export default function DeveloperPage() {
     </div>
   );
 }
+"""
+with open("frontend/src/pages/DeveloperPage.tsx", "w") as f: f.write(dev_page)
+
+print("Frontend for TASK-017 generated successfully.")

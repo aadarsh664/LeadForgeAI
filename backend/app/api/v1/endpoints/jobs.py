@@ -1,50 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List
 from app.schemas.job import SearchJob
 from app.schemas.search import SearchRequest
-from app.services.job.repository import JobRepository
-from app.services.job.worker import SearchWorker
-from app.core.dependencies import get_job_repository, get_search_worker
+from app.services.job.worker import worker_manager
 
 router = APIRouter()
 
-@router.post("", response_model=SearchJob)
-async def create_job(request: SearchRequest, worker: SearchWorker = Depends(get_search_worker)):
-    return await worker.enqueue_job(request, provider="mock")
+@router.post("/jobs", response_model=SearchJob)
+async def create_job(request: SearchRequest):
+    return await worker_manager.create_job(request)
 
-@router.get("", response_model=List[SearchJob])
-async def list_jobs(repo: JobRepository = Depends(get_job_repository)):
-    return repo.get_all()
+@router.get("/jobs", response_model=List[SearchJob])
+async def get_all_jobs():
+    return worker_manager.repo.get_all()
 
-@router.get("/{job_id}", response_model=SearchJob)
-async def get_job(job_id: str, repo: JobRepository = Depends(get_job_repository)):
-    job = repo.get_by_id(job_id)
+@router.get("/jobs/{job_id}", response_model=SearchJob)
+async def get_job(job_id: str):
+    job = worker_manager.repo.get_by_id(job_id)
     if not job:
-        raise HTTPException(404, "Job not found")
+        raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-@router.post("/{job_id}/cancel", response_model=SearchJob)
-async def cancel_job(job_id: str, worker: SearchWorker = Depends(get_search_worker)):
-    try:
-        return await worker.cancel_job(job_id)
-    except ValueError as e:
-        raise HTTPException(404, str(e))
+@router.post("/jobs/{job_id}/cancel")
+async def cancel_job(job_id: str):
+    if not await worker_manager.cancel_job(job_id):
+        raise HTTPException(status_code=400, detail="Cannot cancel job")
+    return {"status": "cancelled"}
 
-@router.post("/{job_id}/retry", response_model=SearchJob)
-async def retry_job(job_id: str, worker: SearchWorker = Depends(get_search_worker)):
-    try:
-        return await worker.retry_job(job_id)
-    except ValueError as e:
-        raise HTTPException(400, str(e))
-
-@router.get("/{job_id}/progress")
-async def get_progress(job_id: str, repo: JobRepository = Depends(get_job_repository)):
-    job = repo.get_by_id(job_id)
-    if not job:
-        raise HTTPException(404, "Job not found")
-    return {
-        "id": job.id,
-        "state": job.state,
-        "progress": job.progress,
-        "result_count": len(job.results) if job.results else 0
-    }
+@router.post("/jobs/{job_id}/retry")
+async def retry_job(job_id: str):
+    if not await worker_manager.retry_job(job_id):
+        raise HTTPException(status_code=400, detail="Cannot retry job")
+    return {"status": "retrying"}

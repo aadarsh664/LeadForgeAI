@@ -1,39 +1,36 @@
-# TASK-015 Completion Report
+# TASK-017 Completion Report
 
 ## Summary
-The **Search History & Saved Searches (TASK-015)** implementation is complete. It introduces a robust local persistence layer on the FastAPI backend using JSON files, laying down the structural foundation for future database integration while strictly maintaining the Local-First requirement. The frontend now boasts a dedicated History Page with intuitive sub-navigation, allowing users to effortlessly review past activities, run previous searches, bookmark favorites, rename saved templates, and seamlessly inject past queries back into the main search form.
+The **Google Maps Provider Framework (TASK-017)** has been successfully engineered. This task constructed the essential abstraction layer that bridges the core Search Engine with future data scrapers (like Playwright). In strict accordance with the rules, absolutely no scraping code or HTML parsing was implemented yet. Instead, a highly resilient, configuration-driven provider framework was built. 
 
 ## Created & Modified Files
 
 ### Backend
-- `backend/app/schemas/history.py`: Engineered the Pydantic schemas (`SearchHistoryItem`, `SavedSearch`) to strictly type all historical records.
-- `backend/app/services/history/service.py`: Implemented the `HistoryService` logic. Temporarily utilizes JSON file I/O (`backend/data/*.json`) to mimic a persistent database layer.
-- `backend/app/api/v1/endpoints/history.py`: Constructed REST endpoints to retrieve, insert, rename, favorite, and delete both standard history and saved searches.
-- `backend/app/api/v1/endpoints/search.py`: Modified the search engine executor to automatically log successful search queries to the History Service.
-- `backend/app/main.py`: Connected the new `history` router to the application.
+- `backend/app/services/search/providers/google_maps/config.py`: Implemented `ProviderConfig` for managing headless modes, proxies, retries, and request timeouts.
+- `backend/app/services/search/providers/google_maps/rate_limiter.py`: Built an asynchronous `RateLimiter` to enforce Requests-Per-Minute (RPM) limits and prevent IP bans.
+- `backend/app/services/search/providers/google_maps/retry.py`: Developed a `RetryManager` using an Exponential Backoff algorithm to gracefully recover from network blips or captcha blockages.
+- `backend/app/services/search/providers/google_maps/health.py`: Created the `ProviderHealth` system with strongly typed `HealthStatus` enumerations (Ready, Busy, Blocked, Rate Limited).
+- `backend/app/services/search/providers/google_maps/logger.py`: Authored `ProviderLogger` to structure execution telemetry.
+- `backend/app/services/search/providers/google_maps/adapter.py`: Designed the `ProviderAdapter` ABC, strictly enforcing the contract for the upcoming Playwright scraper.
+- `backend/app/services/search/providers/google_maps/normalizer.py`: Created `GoogleMapsNormalizer` to enforce data consistency.
+- `backend/app/services/search/providers/google_maps/provider.py`: Unified all the above modules into the master `GoogleMapsProvider` class that implements `BaseSearchProvider`.
+- `backend/app/api/v1/endpoints/diagnostics.py`: Added a diagnostics endpoint to stream live provider telemetry to the UI.
 
 ### Frontend
-- `frontend/src/pages/SearchHistory.tsx`: Created a powerful dual-pane layout providing easy navigation between "Recent Searches" and "Saved Searches". Included actions such as Run Again, Duplicate, Delete, Rename, and Favorite.
-- `frontend/src/pages/BusinessPage.tsx`:
-  - Upgraded the `viewState` to handle the new `"history"` context.
-  - Intercepted the dummy "Recent Searches" widget and wired it up to fetch live historical snippets.
-  - Replaced the dummy "Saved Templates" section by injecting a "Save this Search" action directly into the Results view.
-  - Added a "History" button into the master PageHeader.
+- `frontend/src/pages/DeveloperPage.tsx`: Built the "Developer Diagnostics" dashboard. It continuously polls the diagnostics API to render the active Framework Config, Provider Status, active capabilities, and the status of the plugged-in adapter.
 
 ## Architecture Notes
-- Kept the system entirely independent of Google Maps or scraping APIs.
-- Adhered to the requirement of not utilizing external databases for now by creating a scalable file-based JSON abstraction that can easily be swapped with SQLAlchemy later.
-- Added comprehensive Empty States mirroring the Apple HIG / Linear design aesthetic when no history exists.
+- **SOLID Principles**: The framework is deeply decentralized. Rate limiting, retries, and configuration are isolated components injected into the Provider.
+- **Provider Agnostic**: The Execution Engine doesn't know Google Maps exists. It only knows `BaseSearchProvider`. 
+- **Adapter Pattern**: The `GoogleMapsProvider` doesn't know Playwright exists. It only knows `ProviderAdapter`. This guarantees we can swap Playwright for Apify or Puppeteer in the future with zero architectural changes.
 
 ## Verification Steps
-1. Open the UI, navigate to "Businesses".
-2. Enter a Search Request (e.g. Category: "Plumbers", Location: "Austin").
-3. Run the search. Verify it successfully returns Demo Data.
-4. From the Results page, click "Save this Search" in the top right. Name it "Austin Plumbers".
-5. Click the "History" button in the top right of the Page Header.
-6. Verify "Austin Plumbers" appears under "Saved Searches".
-7. Click "Recent Searches" in the sidebar and verify your previous search was automatically logged with a timestamp.
-8. Click the "Run Again" play button to verify the application navigates back and triggers the query automatically.
+1. Switch the application to **Developer Mode** using the floating toggle in the bottom right corner.
+2. Open the **Developer** tab in the sidebar.
+3. Observe the `Developer Diagnostics` dashboard.
+4. Verify that **Provider Status** shows the Google Maps provider as `Ready`.
+5. Verify that **Framework Config** accurately displays the default Rate Limits, Delays, and Headless settings.
+6. Verify the **Active Adapter** card indicates that the system is currently waiting for a scraper adapter to be plugged in.
 
 ---
 **Ready for Review.**

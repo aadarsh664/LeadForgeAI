@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from app.services.job.worker import worker_manager
+import asyncio
+
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router

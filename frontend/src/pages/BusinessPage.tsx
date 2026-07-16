@@ -18,6 +18,7 @@ import { Search, RotateCcw, ChevronDown, ChevronUp, Clock, Sparkles, Bookmark, H
 import BusinessResults from "./BusinessResults";
 import BusinessProfile from "./BusinessProfile";
 import SearchHistory from "./SearchHistory";
+import JobProgressCard from "../components/search/JobProgressCard";
 import type { NormalizedBusiness } from "../types/search";
 
 interface SearchFormState {
@@ -69,7 +70,7 @@ const defaultFilters: FilterState = {
 };
 
 export default function BusinessPage() {
-  const [viewState, setViewState] = useState<"form" | "loading" | "results" | "error" | "profile" | "history">("form");
+  const [viewState, setViewState] = useState<"form" | "progress" | "results" | "error" | "profile" | "history">("form");
   const [form, setForm] = useState<SearchFormState>(defaultForm);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -77,6 +78,9 @@ export default function BusinessPage() {
   const [results, setResults] = useState<NormalizedBusiness[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedBusiness, setSelectedBusiness] = useState<NormalizedBusiness | null>(null);
+
+  // Job Execution State
+  const [currentJob, setCurrentJob] = useState<any>(null);
 
   // Recent History snippet for the right column
   const [recentSnippet, setRecentSnippet] = useState<any[]>([]);
@@ -114,6 +118,32 @@ export default function BusinessPage() {
     return () => clearTimeout(timeout);
   }, [form, filters]);
 
+  // Polling Effect
+  useEffect(() => {
+    let interval: any;
+    if (viewState === "progress" && currentJob && !["Completed", "Failed", "Cancelled"].includes(currentJob.status)) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch(`http://localhost:8000/api/v1/search/jobs/${currentJob.id}`);
+          if (res.ok) {
+            const jobData = await res.json();
+            setCurrentJob(jobData);
+            if (jobData.status === "Completed") {
+              setResults(jobData.results || []);
+              setViewState("results");
+              loadSnippet();
+            } else if (jobData.status === "Failed") {
+              setErrorMsg(jobData.error || "Job failed");
+            }
+          }
+        } catch (e) {
+          console.error("Polling error", e);
+        }
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [viewState, currentJob]);
+
   const isValid = form.category.trim() !== "" && form.location.trim() !== "";
 
   const handleReset = () => {
@@ -123,20 +153,19 @@ export default function BusinessPage() {
   };
 
   const executeSearchRequest = async (requestBody: any) => {
-    setViewState("loading");
+    setViewState("progress");
+    setCurrentJob(null);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/search/businesses", {
+      const response = await fetch("http://localhost:8000/api/v1/search/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody)
       });
       
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || "Search failed");
+      const jobData = await response.json();
+      if (!response.ok) throw new Error(jobData.detail || "Failed to start job");
       
-      setResults(data.results || []);
-      setViewState("results");
-      loadSnippet();
+      setCurrentJob(jobData);
     } catch (err: any) {
       setErrorMsg(err.message || "An unknown error occurred");
       setViewState("error");
@@ -167,6 +196,19 @@ export default function BusinessPage() {
       }
     };
     await executeSearchRequest(requestBody);
+  };
+
+  const handleCancelJob = async () => {
+    if (currentJob?.id) {
+      await fetch(`http://localhost:8000/api/v1/search/jobs/${currentJob.id}/cancel`, { method: "POST" });
+    }
+  };
+
+  const handleRetryJob = async () => {
+    if (currentJob?.id) {
+      await fetch(`http://localhost:8000/api/v1/search/jobs/${currentJob.id}/retry`, { method: "POST" });
+      // Polling will naturally pick it up since status becomes Queued
+    }
   };
 
   const handleSaveSearch = async () => {
@@ -207,7 +249,6 @@ export default function BusinessPage() {
   };
 
   const handleRunFromHistory = (req: any) => {
-    // Populate form from req
     setForm({
       category: req.category || "",
       location: req.location || "",
@@ -233,16 +274,18 @@ export default function BusinessPage() {
     executeSearchRequest(req);
   };
 
-  if (viewState === "loading") {
+  if (viewState === "progress") {
     return (
-      <div className="page-container" style={{ padding: "0 16px 64px 16px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
-          <Loader size="lg" />
-          <div style={{ textAlign: "center" }}>
-            <H3 style={{ margin: "0 0 8px 0" }}>Searching for Businesses</H3>
-            <Text style={{ margin: 0, color: "var(--color-text-secondary)" }}>Connecting to providers to find the best matches...</Text>
-          </div>
-        </div>
+      <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
+        {!currentJob ? (
+           <div style={{ display: "flex", justifyContent: "center", padding: "64px" }}><Loader size="lg" /></div>
+        ) : (
+          <JobProgressCard 
+            job={currentJob} 
+            onCancel={handleCancelJob} 
+            onRetry={handleRetryJob} 
+          />
+        )}
       </div>
     );
   }
