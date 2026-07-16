@@ -8,7 +8,7 @@ import {
   Clock, FileText,
   Map, Calendar, Database, Sparkles, Megaphone, CheckCircle
 } from "lucide-react";
-import type { NormalizedBusiness } from "../../types/search";
+import type { NormalizedBusiness } from "../types/search";
 
 interface BusinessProfileProps {
   business: NormalizedBusiness;

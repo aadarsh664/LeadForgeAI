@@ -43,6 +43,7 @@ class GoogleMapsProvider(BaseSearchProvider):
                 return
 
             async def fetch_next():
+                nonlocal count
                 batch = []
                 async for item in self.adapter.execute_search(request):
                     if self._is_cancelled:

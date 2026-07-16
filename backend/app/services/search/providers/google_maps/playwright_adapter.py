@@ -84,22 +84,29 @@ class PlaywrightAdapter(ProviderAdapter):
         
         try:
             query = f"{request.category} in {request.location}"
-            await page.goto("https://www.google.com/maps", wait_until="domcontentloaded")
+            import urllib.parse
+            encoded_query = urllib.parse.quote_plus(query)
+            search_url = f"https://www.google.com/maps/search/{encoded_query}"
             
-            # Wait for search box
-            search_box = page.locator("input#searchboxinput")
-            await search_box.wait_for(state="visible", timeout=10000)
+            await page.goto(search_url, wait_until="domcontentloaded")
             
-            await search_box.fill(query)
-            await search_box.press("Enter")
+            try:
+                consent_btn = page.locator("button:has-text('Accept all'), button:has-text('I agree')")
+                if await consent_btn.count() > 0:
+                    await consent_btn.first.click()
+            except:
+                pass
+            
             
             # Wait for results container. `.hfpxzc` is a common class for result links, or `[role="feed"]`
             # We wait for the feed to appear
-            feed = page.locator("div[role='feed']")
+            feed = page.locator("div[role='feed'], div[aria-label*='Results for']")
             try:
-                await feed.wait_for(state="visible", timeout=15000)
+                await feed.first.wait_for(state="visible", timeout=15000)
+                feed = feed.first
             except:
-                ProviderLogger.log_error("Feed did not appear, possibly no results or UI changed.")
+                ProviderLogger.log_error(f"Feed did not appear, possibly no results or UI changed. URL: {page.url}")
+                await page.screenshot(path="playwright_error.png")
                 return
 
             extracted_names = set()

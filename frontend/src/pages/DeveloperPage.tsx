@@ -95,7 +95,15 @@ export default function DeveloperPage() {
             
             <div style={{ padding: "16px", background: "var(--color-bg-subtle)", borderRadius: "var(--radius-sm)", border: "1px dashed var(--color-border-strong)" }}>
               <Text style={{ margin: 0, textAlign: "center", color: "var(--color-text-secondary)" }}>
-                No active adapter. The Provider Framework is initialized and waiting for a scraper adapter (e.g. Playwright) to be plugged in.
+                {diagnostics.adapter === "Connected" ? (
+                  <>
+                    <span style={{ color: "var(--color-success)", fontWeight: 600 }}>Playwright Adapter</span> - Connected & Ready
+                  </>
+                ) : (
+                  <>
+                    <span style={{ color: "var(--color-danger)", fontWeight: 600 }}>Playwright Adapter</span> - {diagnostics.adapter || "Initialization Failed"}
+                  </>
+                )}
               </Text>
             </div>
           </Card>

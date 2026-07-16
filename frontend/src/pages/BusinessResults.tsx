@@ -7,7 +7,7 @@ import {
   Search, LayoutGrid, List as ListIcon, MapPin, Star, Phone, Globe, 
   Mail, Map, RefreshCcw, Download, CheckSquare, Square
 } from "lucide-react";
-import type { NormalizedBusiness } from "../../types/search";
+import type { NormalizedBusiness } from "../types/search";
 
 interface BusinessResultsProps {
   results: NormalizedBusiness[];
@@ -105,7 +105,7 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <H3 style={{ margin: "0 0 4px 0", fontSize: "1.1rem" }}>{business.name}</H3>
-                    {(business.raw_data?.demo_data === True || business.raw_data?.demo_data === true) && <Badge variant="warning">Demo</Badge>}
+                    {business.raw_data?.demo_data === true && <Badge variant="warning">Demo</Badge>}
                   </div>
                   <Text style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary)" }}>{business.category}</Text>
                   
@@ -164,7 +164,7 @@ export default function BusinessResults({ results, onBack, onSelect }: BusinessR
                   </td>
                   <td style={{ padding: "16px" }}>
                     <div style={{ fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "4px" }}>
-                      {business.name} {(business.raw_data?.demo_data === True || business.raw_data?.demo_data === true) && <Badge variant="warning" style={{ zoom: 0.8, marginLeft: "8px" }}>Demo</Badge>}
+                      {business.name} {business.raw_data?.demo_data === true && <Badge variant="warning" style={{ zoom: 0.8, marginLeft: "8px" }}>Demo</Badge>}
                     </div>
                     <div style={{ color: "var(--color-text-secondary)" }}>{business.category}</div>
                   </td>
