@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import type { StartupStatusResponse } from "../types/system";
 
-export default function DeveloperScreen() {
+interface DeveloperScreenProps {
+  onEnterApp: () => void;
+}
+
+export default function DeveloperScreen({ onEnterApp }: DeveloperScreenProps) {
   const [status, setStatus] = useState<StartupStatusResponse>({
     current_step: "idle",
     completed_steps: [],
@@ -117,7 +121,7 @@ export default function DeveloperScreen() {
                     
                     {status.is_ready && (
                         <div style={{ marginTop: "24px", textAlign: "center" }}>
-                            <button className="primary-button" type="button">
+                            <button className="primary-button" type="button" onClick={onEnterApp}>
                             Continue
                             </button>
                         </div>

@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import type { StartupStatusResponse } from "../types/system";
 
-export default function UserScreen() {
+interface UserScreenProps {
+  onEnterApp: () => void;
+}
+
+export default function UserScreen({ onEnterApp }: UserScreenProps) {
   const [status, setStatus] = useState<StartupStatusResponse>({
     current_step: "idle",
     completed_steps: [],
@@ -67,7 +71,7 @@ export default function UserScreen() {
             </ul>
           </div>
           
-          <button className="primary-button" type="button" style={{ width: "100%" }}>
+          <button className="primary-button" type="button" style={{ width: "100%" }} onClick={onEnterApp}>
             Enter Workspace
           </button>
         </section>

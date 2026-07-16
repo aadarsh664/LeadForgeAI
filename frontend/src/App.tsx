@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import DeveloperScreen from "./screens/DeveloperScreen";
 import UserScreen from "./screens/UserScreen";
+import AppLayout from "./components/layout/AppLayout";
 
 function App() {
   const [mode, setMode] = useState<"user" | "developer">("user");
   const [loading, setLoading] = useState(true);
+  const [inApp, setInApp] = useState(() => localStorage.getItem("leadforgeai_in_app") === "true");
 
   useEffect(() => {
     const fetchMode = async () => {
@@ -22,6 +24,11 @@ function App() {
     };
     fetchMode();
   }, []);
+
+  const handleEnterApp = () => {
+    setInApp(true);
+    localStorage.setItem("leadforgeai_in_app", "true");
+  };
 
   const toggleMode = async () => {
     const newMode = mode === "user" ? "developer" : "user";
@@ -41,29 +48,33 @@ function App() {
     return <main className="app-shell"><p>Loading...</p></main>;
   }
 
+  if (inApp) {
+    return (
+      <>
+        <button 
+          onClick={toggleMode} 
+          style={{ position: 'fixed', bottom: 48, right: 24, opacity: 0.5, zIndex: 9999, background: "#1f2937", color: "white", border: "none", padding: "8px 16px", borderRadius: "20px", cursor: "pointer", fontSize: "0.85rem", fontWeight: 600 }}
+        >
+          Switch to {mode === "user" ? "Developer" : "User"} Mode
+        </button>
+        <AppLayout mode={mode} />
+      </>
+    );
+  }
+
   return (
     <>
       <button 
         onClick={toggleMode} 
-        style={{ 
-          position: 'fixed', 
-          bottom: 24, 
-          right: 24, 
-          opacity: 0.5, 
-          zIndex: 999,
-          background: "#1f2937",
-          color: "white",
-          border: "none",
-          padding: "8px 16px",
-          borderRadius: "20px",
-          cursor: "pointer",
-          fontSize: "0.85rem",
-          fontWeight: 600
-        }}
+        style={{ position: 'fixed', bottom: 24, right: 24, opacity: 0.5, zIndex: 999, background: "#1f2937", color: "white", border: "none", padding: "8px 16px", borderRadius: "20px", cursor: "pointer", fontSize: "0.85rem", fontWeight: 600 }}
       >
         Switch to {mode === "user" ? "Developer" : "User"} Mode
       </button>
-      {mode === "developer" ? <DeveloperScreen /> : <UserScreen />}
+      {mode === "developer" ? (
+        <DeveloperScreen onEnterApp={handleEnterApp} />
+      ) : (
+        <UserScreen onEnterApp={handleEnterApp} />
+      )}
     </>
   );
 }
