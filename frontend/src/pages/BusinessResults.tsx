@@ -12,9 +12,10 @@ import type { NormalizedBusiness } from "../../types/search";
 interface BusinessResultsProps {
   results: NormalizedBusiness[];
   onBack: () => void;
+  onSelect: (business: NormalizedBusiness) => void;
 }
 
-export default function BusinessResults({ results, onBack }: BusinessResultsProps) {
+export default function BusinessResults({ results, onBack, onSelect }: BusinessResultsProps) {
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -26,7 +27,8 @@ export default function BusinessResults({ results, onBack }: BusinessResultsProp
     }
   };
 
-  const toggleSelect = (id: string) => {
+  const toggleSelect = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     const newSet = new Set(selectedIds);
     if (newSet.has(id)) newSet.delete(id);
     else newSet.add(id);
@@ -89,15 +91,21 @@ export default function BusinessResults({ results, onBack }: BusinessResultsProp
       {viewMode === "card" ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "24px" }}>
           {results.map(business => (
-            <Card key={business.business_id} style={{ display: "flex", flexDirection: "column", gap: "16px", cursor: "pointer" }}>
+            <Card 
+              key={business.business_id} 
+              style={{ display: "flex", flexDirection: "column", gap: "16px", cursor: "pointer", transition: "all var(--transition-fast)" }}
+              onClick={() => onSelect(business)}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = "var(--color-border-default)"; e.currentTarget.style.transform = "none"; }}
+            >
               <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                <div onClick={(e) => { e.stopPropagation(); toggleSelect(business.business_id); }}>
-                  <Checkbox checked={selectedIds.has(business.business_id)} onChange={() => toggleSelect(business.business_id)} />
+                <div onClick={(e) => toggleSelect(business.business_id, e)}>
+                  <Checkbox checked={selectedIds.has(business.business_id)} onChange={() => {}} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <H3 style={{ margin: "0 0 4px 0", fontSize: "1.1rem" }}>{business.name}</H3>
-                    {business.raw_data?.demo_data && <Badge variant="warning">Demo Data</Badge>}
+                    {(business.raw_data?.demo_data === True || business.raw_data?.demo_data === true) && <Badge variant="warning">Demo</Badge>}
                   </div>
                   <Text style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary)" }}>{business.category}</Text>
                   
@@ -120,16 +128,13 @@ export default function BusinessResults({ results, onBack }: BusinessResultsProp
                   <Phone size={16} /> <span>{business.phone}</span>
                 </div>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <Globe size={16} /> <a href={business.website} target="_blank" rel="noreferrer" style={{ color: "var(--color-primary)", textDecoration: "none" }}>{business.website}</a>
+                  <Globe size={16} /> <a href={business.website} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: "var(--color-primary)", textDecoration: "none" }}>{business.website}</a>
                 </div>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                   <Mail size={16} /> <span>{business.email}</span>
                 </div>
               </div>
               
-              <Button variant="ghost" style={{ marginTop: "auto", alignSelf: "flex-start" }} disabled icon={<Map size={16}/>}>
-                Open Maps
-              </Button>
             </Card>
           ))}
         </div>
@@ -147,13 +152,19 @@ export default function BusinessResults({ results, onBack }: BusinessResultsProp
             </thead>
             <tbody>
               {results.map(business => (
-                <tr key={business.business_id} style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
-                  <td style={{ padding: "16px" }}>
-                    <Checkbox checked={selectedIds.has(business.business_id)} onChange={() => toggleSelect(business.business_id)} />
+                <tr 
+                  key={business.business_id} 
+                  style={{ borderBottom: "1px solid var(--color-border-subtle)", cursor: "pointer", transition: "background var(--transition-fast)" }}
+                  onClick={() => onSelect(business)}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "var(--color-bg-subtle)"}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                >
+                  <td style={{ padding: "16px" }} onClick={(e) => toggleSelect(business.business_id, e)}>
+                    <Checkbox checked={selectedIds.has(business.business_id)} onChange={() => {}} />
                   </td>
                   <td style={{ padding: "16px" }}>
                     <div style={{ fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "4px" }}>
-                      {business.name} {business.raw_data?.demo_data && <Badge variant="warning" style={{ zoom: 0.8, marginLeft: "8px" }}>Demo</Badge>}
+                      {business.name} {(business.raw_data?.demo_data === True || business.raw_data?.demo_data === true) && <Badge variant="warning" style={{ zoom: 0.8, marginLeft: "8px" }}>Demo</Badge>}
                     </div>
                     <div style={{ color: "var(--color-text-secondary)" }}>{business.category}</div>
                   </td>

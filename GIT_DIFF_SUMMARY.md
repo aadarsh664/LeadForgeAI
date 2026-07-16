@@ -1,24 +1,17 @@
-# Git Diff Summary (TASK-013)
+# Git Diff Summary (TASK-014)
 
 ## Untracked Files Added
 ```text
-backend/app/api/v1/endpoints/search.py
-backend/app/services/search/providers/__init__.py
-backend/app/services/search/providers/mock.py
-frontend/src/pages/BusinessResults.tsx
-frontend/src/types/search.ts
-task_13_backend.py
+frontend/src/pages/BusinessProfile.tsx
 ```
 
 ## Modified Files
 ```text
-backend/app/core/dependencies.py
-backend/app/main.py
 frontend/src/pages/BusinessPage.tsx
+frontend/src/pages/BusinessResults.tsx
 ```
 
 ## Summary of Changes
-- **Backend Mock Provider**: Implemented `MockSearchProvider` that complies with the Search Architecture and returns a standardized list of 20 fake demo businesses.
-- **FastAPI Endpoints**: Wired up the `SearchEngine` singleton via FastAPI dependency injection and exposed the `/api/v1/search/businesses` REST route.
-- **Frontend Results Component**: Created `BusinessResults.tsx` offering rich Card and Table view modes, complete with multiple selection (checkboxes), pagination placeholders, and dynamic status badges.
-- **State Management**: Refactored `BusinessPage.tsx` into a state-machine that handles API loading spinners, error states, and dynamically swaps between the Search Form and the new Results View.
+- **Business Profile View**: Authored `BusinessProfile.tsx` to handle the granular display of a single `NormalizedBusiness` object, breaking down raw data into Contact Information, Location, Online Presence, and AI Analysis segments.
+- **Results Interactivity**: Hooked up `onClick` and CSS hover transitions across `BusinessResults.tsx` to transform static result lists into interactive navigation pathways.
+- **State Flow Expansion**: Updated `BusinessPage.tsx` to orchestrate the new `"profile"` state, seamlessly passing the selected `NormalizedBusiness` into the profile view and providing a robust `onBack` callback to restore the exact previous search state.

@@ -16,6 +16,7 @@ import {
 } from "../design-system/components";
 import { Search, RotateCcw, ChevronDown, ChevronUp, Clock, Sparkles } from "lucide-react";
 import BusinessResults from "./BusinessResults";
+import BusinessProfile from "./BusinessProfile";
 import type { NormalizedBusiness } from "../types/search";
 
 interface SearchFormState {
@@ -67,13 +68,14 @@ const defaultFilters: FilterState = {
 };
 
 export default function BusinessPage() {
-  const [viewState, setViewState] = useState<"form" | "loading" | "results" | "error">("form");
+  const [viewState, setViewState] = useState<"form" | "loading" | "results" | "error" | "profile">("form");
   const [form, setForm] = useState<SearchFormState>(defaultForm);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   
   const [results, setResults] = useState<NormalizedBusiness[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+  const [selectedBusiness, setSelectedBusiness] = useState<NormalizedBusiness | null>(null);
 
   // Load persisted state
   useEffect(() => {
@@ -147,6 +149,11 @@ export default function BusinessPage() {
     }
   };
 
+  const handleSelectBusiness = (business: NormalizedBusiness) => {
+    setSelectedBusiness(business);
+    setViewState("profile");
+  };
+
   if (viewState === "loading") {
     return (
       <div className="page-container" style={{ padding: "0 16px 64px 16px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
@@ -173,6 +180,14 @@ export default function BusinessPage() {
     );
   }
 
+  if (viewState === "profile" && selectedBusiness) {
+    return (
+      <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
+        <BusinessProfile business={selectedBusiness} onBack={() => setViewState("results")} />
+      </div>
+    );
+  }
+
   if (viewState === "results") {
     if (results.length === 0) {
       return (
@@ -188,7 +203,11 @@ export default function BusinessPage() {
     
     return (
       <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
-        <BusinessResults results={results} onBack={() => setViewState("form")} />
+        <BusinessResults 
+          results={results} 
+          onBack={() => setViewState("form")} 
+          onSelect={handleSelectBusiness}
+        />
       </div>
     );
   }
