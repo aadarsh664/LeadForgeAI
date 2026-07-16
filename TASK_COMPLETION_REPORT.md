@@ -1,26 +1,36 @@
-# TASK-012 Completion Report
+# TASK-013 Completion Report
 
 ## Summary
-The **Business Search Engine Architecture (TASK-012)** is complete. A robust, highly scalable, and completely provider-agnostic search engine foundation has been implemented on the FastAPI backend. It enforces a strict separation of concerns utilizing SOLID principles, ensuring that future external providers (like Google Maps, Yelp, Custom Scrapers) can be seamlessly integrated via a standard plugin interface without requiring any modification to the core engine.
+The **Business Search Results (TASK-013)** implementation is complete. It successfully bridges the UI created in TASK-011 with the backend Search Architecture from TASK-012 using a `Mock Provider`. When a user runs a search, the UI transitions to a beautiful loading state (simulating a provider request delay), and then seamlessly renders a robust Search Results page allowing toggleable Card and Table views.
 
-## Created Files
-- `backend/app/schemas/search.py`: Defined universal `SearchRequest`, `SearchFilters`, `SearchResponse`, and `NormalizedBusiness` Pydantic models.
-- `backend/app/services/search/exceptions.py`: Centralized custom exception definitions (`ProviderNotFoundError`, `SearchValidationError`).
-- `backend/app/services/search/provider.py`: Established the `BaseSearchProvider` abstract class demanding specific async interfaces (`search()`, `initialize()`, `validate()`, etc.).
-- `backend/app/services/search/registry.py`: Created a `ProviderRegistry` for safe dependency injection of registered data providers.
-- `backend/app/services/search/normalizer.py`: Configured a unified `SearchNormalizer` to guarantee all raw provider data formats into the universal `NormalizedBusiness` schema.
-- `backend/app/services/search/validator.py`: Engineered the `SearchValidator` to enforce universal business rules (e.g., rejecting searches without valid Categories/Locations).
-- `backend/app/services/search/pipeline.py`: Assembled the `SearchPipeline` to asynchronously orchestrate the end-to-end execution flow of a single search command.
-- `backend/app/services/search/engine.py`: Constructed the `SearchEngine` facade to manage dependencies and safely route validated queries through the Pipeline.
+## Created & Modified Files
 
-## Architecture Deviations
-- Built entirely within `backend/app/services/search` to maintain strict Domain-Driven Design rather than scattering components across the global namespace.
-- No actual endpoints were wired up yet because TASK-012 focuses exclusively on architectural foundation. Endpoints and the `MockProvider` will be implemented in subsequent tasks.
+### Backend
+- `backend/app/services/search/providers/mock.py`: Created the `MockSearchProvider` which adheres to the `BaseSearchProvider` ABC. It yields a batch of 20 realistic fake businesses clearly marked with a `demo_data` flag.
+- `backend/app/core/dependencies.py`: Bootstrapped the Dependency Injection by instantiating the `ProviderRegistry`, registering the `MockSearchProvider`, and providing the `SearchEngine` singleton.
+- `backend/app/api/v1/endpoints/search.py`: Created the `/api/v1/search/businesses` HTTP POST endpoint.
+- `backend/app/main.py`: Attached the new search router to the FastAPI application.
+
+### Frontend
+- `frontend/src/types/search.ts`: Mirrored the backend Pydantic models (e.g., `NormalizedBusiness`, `SearchRequest`) into TypeScript interfaces.
+- `frontend/src/pages/BusinessResults.tsx`: Built the dynamic Results component featuring:
+  - **Result Toolbar**: Shows result count, View Mode toggles (Card/Table), Sort dropdown, and Selection actions.
+  - **Card View Grid**: Responsive cards displaying Business Name, Category, Ratings (with Lucide Stars), Contact Info (Phone/Web/Email), and explicit "Demo Data" badges.
+  - **Table View**: A data-dense table for power users with checkbox selection columns.
+- `frontend/src/pages/BusinessPage.tsx`: Upgraded the Business Search page with a state machine (`viewState: "form" | "loading" | "results" | "error"`) to orchestrate the lifecycle of the search request and safely parse the JSON response.
+
+## Architecture Notes
+- The "Demo Data" badge is strictly enforced using `raw_data?.demo_data` to ensure the user is fully aware that no external APIs (like Google Maps) are being consumed yet.
+- Reused the `AppLayout` and `Design System` seamlessly without requiring external CSS changes.
 
 ## Verification Steps
-1. Verified that the Abstract Base Classes (`ABC`) enforce interface conformity via Python typings.
-2. Codebase analyzed to ensure zero UI or Database coupling leaked into the search domain.
-3. Verified the Python syntax successfully compiles and satisfies Pydantic V2 configurations.
+1. Open the UI, navigate to "Businesses".
+2. Enter "Dentists" in New York.
+3. Click "Search". Verify the `Loader` component displays a loading state.
+4. Verify the 20 fake businesses are rendered.
+5. Toggle between "Card" and "Table" views using the top-right toolbar.
+6. Verify checking the boxes independently tracks selection state.
+7. Click "Back to Search" to ensure state persistence allows you to refine your search.
 
 ---
 **Ready for Review.**

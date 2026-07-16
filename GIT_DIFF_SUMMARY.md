@@ -1,21 +1,24 @@
-# Git Diff Summary (TASK-012)
+# Git Diff Summary (TASK-013)
 
 ## Untracked Files Added
 ```text
-backend/app/schemas/search.py
-backend/app/services/search/__init__.py
-backend/app/services/search/engine.py
-backend/app/services/search/exceptions.py
-backend/app/services/search/normalizer.py
-backend/app/services/search/pipeline.py
-backend/app/services/search/provider.py
-backend/app/services/search/registry.py
-backend/app/services/search/validator.py
-generate_search_arch.py
+backend/app/api/v1/endpoints/search.py
+backend/app/services/search/providers/__init__.py
+backend/app/services/search/providers/mock.py
+frontend/src/pages/BusinessResults.tsx
+frontend/src/types/search.ts
+task_13_backend.py
+```
+
+## Modified Files
+```text
+backend/app/core/dependencies.py
+backend/app/main.py
+frontend/src/pages/BusinessPage.tsx
 ```
 
 ## Summary of Changes
-- **Search Engine Scaffolding**: Built the complete backend Search Engine module architecture.
-- **Provider Interfaces**: Implemented the strict `BaseSearchProvider` ABC to force all future external sources (Google, Yelp) to comply with LeadForgeAI's lifecycle hooks (`initialize`, `validate`, `search`, `cancel`).
-- **Domain Models**: Authored the unified `NormalizedBusiness` and `SearchRequest` Pydantic models to guarantee predictable API payloads regardless of the underlying data source.
-- **Orchestration**: Built the `SearchPipeline` and `ProviderRegistry` to handle dependency injection and robust error handling during query execution.
+- **Backend Mock Provider**: Implemented `MockSearchProvider` that complies with the Search Architecture and returns a standardized list of 20 fake demo businesses.
+- **FastAPI Endpoints**: Wired up the `SearchEngine` singleton via FastAPI dependency injection and exposed the `/api/v1/search/businesses` REST route.
+- **Frontend Results Component**: Created `BusinessResults.tsx` offering rich Card and Table view modes, complete with multiple selection (checkboxes), pagination placeholders, and dynamic status badges.
+- **State Management**: Refactored `BusinessPage.tsx` into a state-machine that handles API loading spinners, error states, and dynamically swaps between the Search Form and the new Results View.

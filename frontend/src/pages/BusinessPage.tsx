@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from "react";
 import {
   Card,
-  H2,
   H3,
   Text,
   Button,
   Input,
-  SearchInput,
   Divider,
   Switch,
   Checkbox,
   Badge,
   PageHeader,
   SectionHeader,
-  Dropdown
+  Dropdown,
+  Loader
 } from "../design-system/components";
-import { Search, RotateCcw, MapPin, Building2, Tag, ChevronDown, ChevronUp, Clock, Sparkles } from "lucide-react";
+import { Search, RotateCcw, ChevronDown, ChevronUp, Clock, Sparkles } from "lucide-react";
+import BusinessResults from "./BusinessResults";
+import type { NormalizedBusiness } from "../types/search";
 
 interface SearchFormState {
   category: string;
@@ -66,9 +67,13 @@ const defaultFilters: FilterState = {
 };
 
 export default function BusinessPage() {
+  const [viewState, setViewState] = useState<"form" | "loading" | "results" | "error">("form");
   const [form, setForm] = useState<SearchFormState>(defaultForm);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  
+  const [results, setResults] = useState<NormalizedBusiness[]>([]);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Load persisted state
   useEffect(() => {
@@ -100,10 +105,93 @@ export default function BusinessPage() {
     localStorage.removeItem("leadforgeai_search_form");
   };
 
-  const handleSearch = () => {
-    // In future this will trigger backend request
-    console.log("Searching with", form, filters);
+  const handleSearch = async () => {
+    if (!isValid) return;
+    setViewState("loading");
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/search/businesses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: form.category,
+          location: form.location,
+          keywords: form.keywords,
+          country: form.country,
+          state: form.state,
+          city: form.city,
+          radius: parseInt(form.radius) || 10,
+          max_results: parseInt(form.maxResults) || 500,
+          language: form.language,
+          filters: {
+            has_website: filters.hasWebsite,
+            has_email: filters.hasEmail,
+            has_phone: filters.hasPhone,
+            min_rating: filters.minRating ? parseFloat(filters.minRating) : null,
+            min_reviews: filters.minReviews ? parseInt(filters.minReviews) : null,
+            open_now: filters.openNow,
+            verified: filters.verified,
+            hide_closed: filters.hideClosed
+          }
+        })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Search failed");
+      
+      setResults(data.results || []);
+      setViewState("results");
+    } catch (err: any) {
+      setErrorMsg(err.message || "An unknown error occurred");
+      setViewState("error");
+    }
   };
+
+  if (viewState === "loading") {
+    return (
+      <div className="page-container" style={{ padding: "0 16px 64px 16px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
+          <Loader size="lg" />
+          <div style={{ textAlign: "center" }}>
+            <H3 style={{ margin: "0 0 8px 0" }}>Searching for Businesses</H3>
+            <Text style={{ margin: 0, color: "var(--color-text-secondary)" }}>Connecting to providers to find the best matches...</Text>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (viewState === "error") {
+    return (
+      <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
+        <Card style={{ textAlign: "center", padding: "64px 24px", maxWidth: "600px", margin: "64px auto", borderColor: "var(--color-danger)", backgroundColor: "var(--color-bg-subtle)" }}>
+          <H3 style={{ color: "var(--color-danger)", marginBottom: "16px" }}>Search Error</H3>
+          <Text style={{ marginBottom: "32px" }}>{errorMsg}</Text>
+          <Button variant="primary" onClick={() => setViewState("form")}>Try Again</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (viewState === "results") {
+    if (results.length === 0) {
+      return (
+        <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
+          <Card style={{ textAlign: "center", padding: "64px 24px", maxWidth: "600px", margin: "64px auto" }}>
+            <H3 style={{ marginBottom: "16px" }}>No Businesses Found</H3>
+            <Text style={{ marginBottom: "32px", color: "var(--color-text-secondary)" }}>We couldn't find any businesses matching your search criteria.</Text>
+            <Button variant="primary" onClick={() => setViewState("form")}>Modify Search</Button>
+          </Card>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
+        <BusinessResults results={results} onBack={() => setViewState("form")} />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container" style={{ padding: "0 16px 64px 16px" }}>
