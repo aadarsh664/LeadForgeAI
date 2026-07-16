@@ -1,22 +1,19 @@
-# Git Diff Summary (TASK-006)
+# Git Diff Summary (TASK-007)
 
 ## Untracked Files Added
 ```text
-backend/app/api/routes/system.py
-backend/app/schemas/system.py
-backend/app/services/startup_service.py
-frontend/src/types/system.ts
+backend/app/services/mode_service.py
+frontend/src/screens/DeveloperScreen.tsx
+frontend/src/screens/UserScreen.tsx
 ```
 
 ## Modified Files
 ```text
-docker-compose.yml
-backend/app/api/router.py
+backend/app/api/routes/system.py
+backend/app/schemas/system.py
 frontend/src/App.tsx
-frontend/src/styles.css
 ```
 
 ## Summary of Changes
-- **Backend**: Added the `/api/v1/system/startup` API infrastructure to process startup validation background tasks while offering live polling endpoints. Connected it to `api_router`.
-- **Frontend**: Stripped the standard TASK-005 dashboard. Built the interactive `POWER ON` UI, implemented 500ms status polling to track startup completion, and styled all related components (Button, Progress Bar, Lists, Status Colors).
-- **Environment**: Updated `docker-compose.yml` to provision an `n8n` container natively, guaranteeing that the startup sequence can fully traverse the checklist without "cheating" or mocking the n8n health check status.
+- **Backend Mode API**: Added robust mode persistence using a local JSON file (`mode.json`), exposed via `/mode` GET and PATCH endpoints in the existing system router.
+- **Frontend Modularity**: The monolithic `App.tsx` was cleanly split into `UserScreen` (minimal UI, no tech details) and `DeveloperScreen` (full technical diagnostics, logs). `App.tsx` now handles global mode state and provides an on-the-fly toggle button.

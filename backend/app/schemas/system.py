@@ -7,3 +7,10 @@ class StartupStatusResponse(BaseModel):
     overall_status: str
     is_ready: bool
     message: str
+
+class ModeResponse(BaseModel):
+    mode: str
+
+class ModeRequest(BaseModel):
+    mode: str
+
